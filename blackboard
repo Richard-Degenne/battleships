@@ -1,0 +1,247 @@
+Client
+======
+
+Upon start-up
+-------------
+
+- Pick a nickname
+
+Menu
+----
+
+- Host a game
+- Join a game
+- Options
+- Quit
+
+Options
+-------
+
+- Change nickname
+- Return
+
+Host a game
+-----------
+
+- Waiting for another player to join...
+- When a player is connected : Start
+- Cancel
+
+Join a game
+-----------
+
+- Available opponents
+- Select a game
+- Refresh
+- Cancel
+
+Server
+======
+
+- Status: Games in progress
+- Log
+
+Requests
+======== 
+
+Every request must be acquitted with a "OK" answer.
+
+HOST <player_name>
+------------------
+	From: A player who has entered "Host a game" menu
+	To: Host server and central server
+	Example: HOST Richou_D_Degenne
+	
+	A player has created a game, and is waiting for another player to join. The
+	central server creates an entry is the table of "available games". The host
+	servers starts listening for a JOIN request (see below).
+
+CANCEL
+------
+	From: A player who has exited the "Host a game" menu
+	To: Central server
+
+	A player has cancelled the game he was hosting. The central server removes
+	the entry in the "available games" list for this game.
+
+GAMES
+-----
+	From: A player who has entered the "Join a game" menu
+	To: Central server
+
+	A player wants to join a game, and request the list of all available games.
+	The central server answers with a GAME request for each available game.
+
+GAME <host_name> <host_address> <host_port> <ready_state>
+---------------------------------------------
+	From: Central server
+	To: A player who has entered the "Join a game" menu
+	Example: GAME Richou_D_Degenne 82.58.164.35 6357 1
+
+	The central server describes a game with its host name, IP address and port,
+	and tells if the game has already been joined by someone else.
+
+JOIN <joining_player_name> <host_player_name>
+---------------------------------------------
+	From: A player who has selected a game from the "Join a game" menu.
+	To: Host server and central server
+	Example: JOIN Pataprout Richou_D_Degenne
+	
+	A player has joined a game. Opens a socket between the two players and the
+	server mark the game as ready. The host server stops listening for JOIN
+	requests.
+
+	
+START <host_player_name> <join_player_name>
+-------------------------------------------
+	From: Host player when clicking "Start"
+	To: Joining player and central server
+	Example: START Pataprout Richou_D_Degenne
+	
+	When both players are ready, the host one has clicked "Start". The central
+	server removes the entry from the "available games" list and adds it to the
+	"in progress" list.
+
+PLACE <boat_id> <x_start_pos><y_start_pos> <x_end_pos><y_end_pos>
+-------------------------------------------------------------------
+	From: A player
+	To: Host server
+	Example: PLACE aircraft_carrier 05 09
+
+	A player has placed one of his/her boats.
+
+FIRE <x_pos><y_pos>
+------------------—-
+	From: A player
+	To: Host server
+	Example: FIRE 53
+
+	A player has fired upon a square.
+
+HIT <x_pos><y_pos>
+------------------
+	From: Host server 
+	To: Both players
+	Example: HIT 72
+
+	A shot upon a square has hit.
+
+SINK <boat_id>
+--------------
+	From: Host server
+	To: Both players
+	Example: SINK patrol_boat
+
+	A boat has been sunk.
+
+MISS <x_pos><y_pos>
+-------------------
+	From: Host server
+	To: Both players
+	Example: MISS 16
+
+	A shot upon a square has missed.
+
+CHAT <message>
+--------------
+	From: A player  / Host server
+	To: Host server / A player
+	Example: CHAT Nice try!
+
+	A player has sent a message in the chat window. The host server relays the
+	message to the other player by re-sending the request.
+
+WIN
+---
+	From: Host server
+	To: A player
+
+	The player receiving this message has won the game.
+
+LOSE
+----
+	From: Host server
+	To: A player
+
+	The player receiving this message has lost the game.
+
+WIN <player_name>
+-----------------
+	From: Host server
+	To: Central server
+
+	The game is over and the host server tells the name of the winner. The central
+	server removes the game from the "in progress" list.
+
+ABORT
+-----
+	From: Host server
+	To: Central server
+
+	The game has been aborted. One of the players may have been disconnected. The
+	central server removes the game from the "in progress" list.
+
+Game progress
+=============
+
+- Fleet positionning
+	- Players select an x-position and y-position for one end of a boat.
+	- Players then select available orientation for their boat.
+	- Repeat for each boat.
+
+- Fleet composition (lenght * number)
+	- Aircraft carrier	(5 * 1)
+	- Battleship	(4 * 1)
+	- Submarine	(3 * 2)
+	- Patrol boat	(2 * 2)
+
+- Host fires first.
+
+- Typical turn
+	- Player select square to fire upon.
+	- <Server request>
+	- <Server answer>
+	- Log : "Hit" (and "Sank") or "Miss"
+
+- When a player's fleet is totally sank, the game is over.
+	
+Game interface
+==============
+
+————————————————————————————————————————————————————————————
+| ——————————      ——————————      | Game Log               |
+| |        |      |        |      |————————————————————————|
+| |        |      |        |      | You have fired upon B5 |
+| |        |      |        |      | Missed!                |
+| ——————————      ——————————      | --- has fired upon A6  |
+| Player: You     Player:---      | --- has sunk your boat |
+|                                 |————————————————————————|
+|                                 |Chat                    |
+|                                 |————————————————————————|
+|                                 |You: Well played!       |
+|                                 |---: Thanks!            |
+|                                 |                        |
+|—————————————————————————————————|————————————————————————|
+|> _                              |> _                     |
+————————————————————————————————————————————————————————————
+
+
+"Join a game" menu
+==================
+
+————————————————————————————————————————————————————————————
+| Host name     | Host address    | Available ?            |
+|——————————————————————————————————————————————————————————|
+| Pataprout     | 122.555.234.231 | Yes                    |
+| Nibor62       | 192.168.205.34  | No                     |
+| Richou        | 82.153.45.214   | Yes                    |
+| ...           | ...             | ...                    |
+|               |                 |                        |
+|               |                 |                        |
+|               |                 |                        |
+|               |                 |                        |
+|               |                 |                        |
+|               |                 |                        |
+|               |                 |                        |
+|               |                 |                        |
+————————————————————————————————————————————————————————————
