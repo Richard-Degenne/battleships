@@ -245,3 +245,11 @@ Game interface
 |               |                 |                        |
 |               |                 |                        |
 ————————————————————————————————————————————————————————————
+
+Code structure
+==============
+
+- game.c / game.h
+	- init_game()
+	- place_boat()
+
