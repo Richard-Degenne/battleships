@@ -42,7 +42,7 @@ typedef struct boat {
 // Prototypes
 void setup_fleet(boat[]);
 void reset_grid(grid);
-void select_boat_coord(boat*);
+void select_boat_coord(boat*, grid);
 void place_boat(boat*, grid);
 void print_grid(grid);
 
