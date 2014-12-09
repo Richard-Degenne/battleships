@@ -110,6 +110,13 @@ PLACE <boat_id> <x_start_pos><y_start_pos> <x_end_pos><y_end_pos>
 
 	A player has placed one of his/her boats.
 
+TURN
+----
+	From : Host server
+	To: A player
+	
+	The server indicates a player can fire.
+
 FIRE <x_pos><y_pos>
 ------------------—-
 	From: A player
@@ -232,7 +239,7 @@ Game interface
 ————————————————————————————————————————————————————————————
 | Host name     | Host address    | Available ?            |
 |——————————————————————————————————————————————————————————|
-| Pataprout     | 122.555.234.231 | Yes                    |
+| Pataprout     | 122.255.234.231 | Yes                    |
 | Nibor62       | 192.168.205.34  | No                     |
 | Richou        | 82.153.45.214   | Yes                    |
 | ...           | ...             | ...                    |
@@ -253,3 +260,20 @@ Code structure
 	- init_game()
 	- place_boat()
 
+Sequence Diagram
+================
+
+	Client A		Serveur			Client B
+	   |			   |			   |
+	   |---------------------->|			   |		PLACE A		
+	   |                       |<----------------------|		PLACE B
+	   |<----------------------|			   |		TURN A
+	   |---------------------->|   			   |		FIRE A
+	   |<----------------------|---------------------->|		HIT A & HIT B
+	   |			   |---------------------->|		TURN B
+	   |			   |<----------------------|		FIRE B	
+	   |-----------------------|-----------------------|		MISS A & MISS B
+	   |<----------------------|			   |		TURN A
+	   |---------------------->|   			   |		FIRE A
+	   |<----------------------|---------------------->|		HIT A & HIT B
+	   |<----------------------|---------------------->|		SINK A & SINK B
