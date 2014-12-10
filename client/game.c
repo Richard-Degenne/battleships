@@ -24,10 +24,12 @@ int main(int argc, char* argv[]) {
 		printf(">> %s\n", fleet[i].name);
 		select_boat_coord(&fleet[i], primary);
 		place_boat(&fleet[i],primary);
+		send_boat(&fleet[i], i);
 	}
 	print_grid(primary);
 	return EXIT_SUCCESS;
 }
+
 
 /*
  * setup_fleet()
@@ -36,7 +38,7 @@ int main(int argc, char* argv[]) {
  * and must be set before effectively placing the boat on the grid.
  */
 void setup_fleet (boat fleet_p[]) {
-	char* names[FLEET_SIZE] = {"Aircraft carrier", "Battleship", "Submarine", "Submarine", "Patrol boat", "Patrol boat"};
+	char* names[FLEET_SIZE] = {"Aircraft_carrier", "Battleship", "Submarine", "Submarine", "Patrol_boat", "Patrol_boat"};
 	int lenghts[FLEET_SIZE] = {5,4,3,3,2,2};
 	int i;
 
@@ -50,19 +52,6 @@ void setup_fleet (boat fleet_p[]) {
 	}
 }
 
-/*
- * reset_grid()
- *
- * Sets every square of the grid to EMPTY_SQ.
- */
-void reset_grid(grid grid_p) {
-	int x,y;
-	for(x=0 ; x<X_SIZE ; ++x) {
-		for(y=0 ; y<Y_SIZE ; ++y) {
-			grid_p[x][y] = EMPTY_SQ;
-		}
-	}
-}
 
 /*
  * select_boat_coord()
@@ -171,6 +160,22 @@ void select_boat_coord(boat* boat_p, grid grid_p) {
 	boat_p->end.y = computed[buff_int[3]].y;
 }
 
+
+/*
+ * reset_grid()
+ *
+ * Sets every square of the grid to EMPTY_SQ.
+ */
+void reset_grid(grid grid_p) {
+	int x,y;
+	for(x=0 ; x<X_SIZE ; ++x) {
+		for(y=0 ; y<Y_SIZE ; ++y) {
+			grid_p[x][y] = EMPTY_SQ;
+		}
+	}
+}
+
+
 /*
  * place_boat()
  * 
@@ -200,6 +205,7 @@ void place_boat(boat* boat_p, grid grid_p) {
 	}
 }
 
+
 /*
  * print_grid()
  *
@@ -215,6 +221,25 @@ void print_grid(grid grid_p) {
 		}
 		printf("|\n--------------------------------------------\n");
 	}
+}
+
+
+/*
+ * send_boat()
+ * 
+ * Sets up a request to be sent to the host server.
+ */
+void send_boat(boat* boat_p, int id) {
+	req_t request;
+	char buff[MAX_REQ];
+	request.type = PLACE_REQ;
+	sprintf(request.args[0], "%d", id);
+	sprintf(request.args[1], "%d", boat_p->start.x);
+	sprintf(request.args[2], "%d", boat_p->start.y);
+	sprintf(request.args[3], "%d", boat_p->end.x);
+	sprintf(request.args[4], "%d", boat_p->end.y);
+
+	send_request(&request);
 }
 
 
