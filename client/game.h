@@ -24,6 +24,8 @@
 # define Y_SIZE 10
 
 # define EMPTY_SQ '.'
+# define MISS_SQ '—'
+# define HIT_SQ 'X'
 
 # define max(a,b) (((a)>(b)) ? (a) : (b))
 # define min(a,b) (((a)<(b)) ? (a) : (b))
@@ -47,8 +49,12 @@ void reset_grid(grid);
 void place_boat(boat*, grid);
 void print_grid(grid);
 void send_boat(boat*, int);
+coord select_fire_coord(grid);
+void send_fire(coord);
 
 // Misc
+int select_char_coord();
+int select_int_coord();
 void flush();
 
 

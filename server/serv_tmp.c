@@ -27,7 +27,10 @@ int main(int argc, char* argv[]) {
 	while(1) {
 		check(sfd_c = accept(sfd_s, (struct sockaddr*)&addr_c, &addr_c_len), "Error accepting");
 		check(recv(sfd_c, buff, MAX_REQ, 0), "Error recieving");
-		printf("Received: \"%s\"\n%d bytes recieved.\n", buff, (int)strlen(buff)-1);
+		printf("Received: \"%s\"\n%d bytes recieved.\n", buff, (int)strlen(buff));
+		printf("Reply: ");
+		scanf("%s", buff);
+		check(send(sfd_c, buff, strlen(buff), 0), "Error sending");
 		close(sfd_c);
 	}
 	return EXIT_SUCCESS;

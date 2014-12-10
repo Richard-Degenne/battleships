@@ -8,26 +8,6 @@
  */
 
 # include "network.h"
-/*
-int main(int argc, char* argv[]) {
-	req_t request;
-	char out_buffer[MAX_REQ];
-	int sfd;
-	struct sockaddr_in addr_s;
-	request.type = PLACE_REQ;
-	strcpy(request.args[0], "4");
-	strcpy(request.args[1], "2");
-	strcpy(request.args[2], "5");
-	strcpy(request.args[3], "2");
-	strcpy(request.args[4], "9");
-	init_connection(&sfd, &addr_s);
-
-	build_request(&request, out_buffer);
-
-	check(send(sfd, out_buffer, strlen(out_buffer)-1, 0), "Error sending");
-	return EXIT_SUCCESS;
-}
-*/
 
 /*
  * build_request()
@@ -61,6 +41,7 @@ void build_request(req_t* req_p, char buffer[MAX_REQ]) {
 		strcpy(buff + cursor*sizeof(char),strcat(req_p->args[i],(i == argc-1)?"":" "));
 		cursor += strlen(req_p->args[i]);
 	}
+	buff[cursor] = '\0'; // End of request character
 	strcpy(buffer, buff);
 }
 
@@ -90,11 +71,15 @@ void send_request(req_t* req_p) {
 	char buff[MAX_REQ];
 	int sfd;
 	struct sockaddr_in addr_s;
+	int i;
 
 	build_request(req_p, buff);
 	printf("Request built: \"%s\"\n", buff);
+	for(i=0 ; i<=strlen(buff) ; ++i) {
+		printf("%d: %d\n", i, buff[i]);
+	}
 	init_connection(&sfd, &addr_s);
-	check(send(sfd, buff, strlen(buff), 0), "Error sending");
+	check(send(sfd, buff, strlen(buff)+1, 0), "Error sending");
 	printf("PLACE request sent.\n%d bytes sent.\n", (int) strlen(buff));
 	close(sfd);
 }

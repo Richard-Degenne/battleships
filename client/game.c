@@ -11,7 +11,7 @@
 
 int main(int argc, char* argv[]) {
 	grid primary, tracking;
-	coord start, end;
+	coord fire;
 	boat fleet[FLEET_SIZE];
 	int i;
 
@@ -19,14 +19,18 @@ int main(int argc, char* argv[]) {
 	reset_grid(primary);
 	reset_grid(tracking);
 	
-	for(i=0 ; i < FLEET_SIZE ; ++i) {
+	for(i=0 ; i < 1 ; ++i) {
 		print_grid(primary);
 		printf(">> %s\n", fleet[i].name);
 		select_boat_coord(&fleet[i], primary);
 		place_boat(&fleet[i],primary);
 		send_boat(&fleet[i], i);
 	}
-	print_grid(primary);
+	while(1) {
+		fire = select_fire_coord(tracking);
+		send_fire(fire);
+		print_grid(tracking);
+	}
 	return EXIT_SUCCESS;
 }
 
@@ -38,7 +42,7 @@ int main(int argc, char* argv[]) {
  * and must be set before effectively placing the boat on the grid.
  */
 void setup_fleet (boat fleet_p[]) {
-	char* names[FLEET_SIZE] = {"Aircraft_carrier", "Battleship", "Submarine", "Submarine", "Patrol_boat", "Patrol_boat"};
+	char* names[FLEET_SIZE] = {"Aircraft carrier", "Battleship", "Submarine", "Submarine", "Patrol boat", "Patrol boat"};
 	int lenghts[FLEET_SIZE] = {5,4,3,3,2,2};
 	int i;
 
@@ -60,7 +64,7 @@ void setup_fleet (boat fleet_p[]) {
  */
 void select_boat_coord(boat* boat_p, grid grid_p) {
 	char buff_ch;
-	int buff_int[3];
+	int buff_int;
 	int lenght = boat_p->lenght;
 	coord computed[4];
 	int available[4]; // 0: Unavailable, 1:Available
@@ -72,43 +76,31 @@ void select_boat_coord(boat* boat_p, grid grid_p) {
 		for(i=0 ; i<4 ; ++i) {
 			available[i] = 1;
 		}
-		// Start x-coordinate
-		do {
-			printf("Select start x: ");
-			scanf("%c", &buff_ch);
-			flush();
-			buff_int[0] = toupper(buff_ch) - 65;
-		} while(buff_int[0] < 0 || buff_int[0] > X_SIZE);
-		boat_p->start.x = buff_int[0];
 
-		// Start y-coordinate
-		do {
-			printf("Select start y: ");
-			scanf("%d", &buff_int[1]);
-			flush();
-		} while(buff_int[1] < 0 || buff_int[1] > Y_SIZE);
-		boat_p->start.y = buff_int[1];
+		// Select start coordinates
+		boat_p->start.x = select_char_coord();
+		boat_p->start.y = select_int_coord();
 
 		// Compute end coordinates
 			// To the right
-		computed[0].x = buff_int[0] + (lenght - 1);
-		computed[0].y = buff_int[1];
+		computed[0].x = boat_p->start.x + (lenght - 1);
+		computed[0].y = boat_p->start.y;
 			// To the top
-		computed[1].x = buff_int[0];
-		computed[1].y = buff_int[1] - (lenght - 1);
+		computed[1].x = boat_p->start.x;
+		computed[1].y = boat_p->start.y - (lenght - 1);
 			// To the left
-		computed[2].x = buff_int[0] - (lenght - 1);
-		computed[2].y = buff_int[1];
+		computed[2].x = boat_p->start.x - (lenght - 1);
+		computed[2].y = boat_p->start.y;
 			// To the bottom
-		computed[3].x = buff_int[0];
-		computed[3].y = buff_int[1] + (lenght - 1);
+		computed[3].x = boat_p->start.x;
+		computed[3].y = boat_p->start.y + (lenght - 1);
 
 		// Determine which computed coordinates are viable
 		for(i=0 ; i<4 ; ++i) {
-			x_start = min(buff_int[0], computed[i].x);
-			x_end = max(buff_int[0], computed[i].x);
-			y_start = min(buff_int[1], computed[i].y);
-			y_end = max(buff_int[1], computed[i].y);
+			x_start = min(boat_p->start.x, computed[i].x);
+			x_end = max(boat_p->start.x, computed[i].x);
+			y_start = min(boat_p->start.y, computed[i].y);
+			y_end = max(boat_p->start.y, computed[i].y);
 
 			// Check if the boat is in the grid
 			if(x_end < 0 || x_end >= X_SIZE || y_start < 0 || y_end >= Y_SIZE) {
@@ -151,13 +143,13 @@ void select_boat_coord(boat* boat_p, grid grid_p) {
 	}
 	do {
 		printf("Your choice: ");
-		scanf("%d", &buff_int[3]);
+		scanf("%d", &buff_int);
 		flush();
-	} while(buff_int[3] < 0 || buff_int[3] > 3 || !available[buff_int[3]]);
+	} while(buff_int < 0 || buff_int > 3 || !available[buff_int]);
 
 	// Set end coordinate
-	boat_p->end.x = computed[buff_int[3]].x;
-	boat_p->end.y = computed[buff_int[3]].y;
+	boat_p->end.x = computed[buff_int].x;
+	boat_p->end.y = computed[buff_int].y;
 }
 
 
@@ -227,11 +219,12 @@ void print_grid(grid grid_p) {
 /*
  * send_boat()
  * 
- * Sets up a request to be sent to the host server.
+ * Sets up a request and sends it to the host server.
  */
 void send_boat(boat* boat_p, int id) {
 	req_t request;
 	char buff[MAX_REQ];
+	
 	request.type = PLACE_REQ;
 	sprintf(request.args[0], "%d", id);
 	sprintf(request.args[1], "%d", boat_p->start.x);
@@ -240,6 +233,71 @@ void send_boat(boat* boat_p, int id) {
 	sprintf(request.args[4], "%d", boat_p->end.y);
 
 	send_request(&request);
+}
+
+
+/*
+ * select_fire_coord()
+ * 
+ * Selects coordinates of a square the player wants to fire upon
+ */
+coord select_fire_coord(grid grid_p) {
+	coord fire;
+	do {
+		fire.x = select_char_coord();
+		fire.y = select_int_coord();
+	} while(grid_p[fire.x][fire.y] != EMPTY_SQ);
+	return fire;
+}
+
+
+/*
+ * send_fire()
+ *
+ * Sets up a request and sends it to the host server.
+ */
+void send_fire(coord coord_p) {
+	req_t request;
+	char buff[MAX_REQ];
+
+	request.type = FIRE_REQ;
+	sprintf(request.args[0], "%d", coord_p.x);
+	sprintf(request.args[1], "%d", coord_p.y);
+
+	send_request(&request);
+}
+
+
+/*
+ * select_char_coord()
+ *
+ * Returns 0 for A or a, 1 for B or b, ... 9 for J or j. Loops else.
+ */
+int select_char_coord() {
+	int x;
+	char x_c;
+	do {
+		printf("Select x: ");
+		scanf("%c", &x_c);
+		flush();
+		x = toupper(x_c) - 65;
+	} while(x < 0 || x > X_SIZE);
+	return x;
+}
+
+/*
+ * select_int_coord()
+ *
+ * Returns any int >= 0 and < Y_SIZE
+ */
+int select_int_coord() {
+	int y;
+	do {
+		printf("Select y: ");
+		scanf("%d", &y);
+		flush();
+	} while(y < 0 || y > Y_SIZE);
+	return y;
 }
 
 
