@@ -14,12 +14,13 @@ int main(int argc, char* argv[]) {
 	coord fire;
 	boat fleet[FLEET_SIZE];
 	int i;
+	char response[MAX_REQ];
 
 	setup_fleet(fleet);
 	reset_grid(primary);
 	reset_grid(tracking);
 	
-	for(i=0 ; i < 1 ; ++i) {
+	for(i=0 ; i < FLEET_SIZE ; ++i) {
 		print_grid(primary);
 		printf(">> %s\n", fleet[i].name);
 		select_boat_coord(&fleet[i], primary);
@@ -28,7 +29,9 @@ int main(int argc, char* argv[]) {
 	}
 	while(1) {
 		fire = select_fire_coord(tracking);
-		send_fire(fire);
+		send_fire(fire, response);
+		printf("Received: \"%s\"\n", response);
+		update_grid(tracking, response);
 		print_grid(tracking);
 	}
 	return EXIT_SUCCESS;
@@ -217,13 +220,38 @@ void print_grid(grid grid_p) {
 
 
 /*
+ * update_grid()
+ *
+ * Updates the tracking grid according to a previous `FIRE` request.
+ */
+void update_grid(grid grid_p, char response_p[MAX_REQ]) {
+	int x,y;
+	char result[MAX_ARG];
+
+	sscanf(response_p, "%s %d %d", result, &x, &y);
+	if(x < 0 || x >= X_SIZE || y < 0 || y >= Y_SIZE) {
+		printf("Inconsistent coordinates.\n");
+		return;
+	}
+	if(!strcmp(result, "HIT")) { // If hit
+		grid_p[x][y] = HIT_SQ;
+	}
+	else if(!strcmp(result, "MISS")) {
+		grid_p[x][y] = MISS_SQ;
+	}
+	else {
+		printf("Inconsistent command.\n");
+		return;
+	}
+}
+
+/*
  * send_boat()
  * 
  * Sets up a request and sends it to the host server.
  */
 void send_boat(boat* boat_p, int id) {
 	req_t request;
-	char buff[MAX_REQ];
 	
 	request.type = PLACE_REQ;
 	sprintf(request.args[0], "%d", id);
@@ -232,7 +260,7 @@ void send_boat(boat* boat_p, int id) {
 	sprintf(request.args[3], "%d", boat_p->end.x);
 	sprintf(request.args[4], "%d", boat_p->end.y);
 
-	send_request(&request);
+	send_request(&request, NULL);
 }
 
 
@@ -256,7 +284,7 @@ coord select_fire_coord(grid grid_p) {
  *
  * Sets up a request and sends it to the host server.
  */
-void send_fire(coord coord_p) {
+void send_fire(coord coord_p, char buff_p[MAX_REQ]) {
 	req_t request;
 	char buff[MAX_REQ];
 
@@ -264,7 +292,7 @@ void send_fire(coord coord_p) {
 	sprintf(request.args[0], "%d", coord_p.x);
 	sprintf(request.args[1], "%d", coord_p.y);
 
-	send_request(&request);
+	send_request(&request, buff_p);
 }
 
 

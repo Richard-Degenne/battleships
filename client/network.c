@@ -67,19 +67,23 @@ void init_connection(int* sfd_p, struct sockaddr_in* addr_p) {
  *
  * Sends a request.
  */
-void send_request(req_t* req_p) {
+ void send_request(req_t* req_p, char buff_p[MAX_REQ]) {
 	char buff[MAX_REQ];
 	int sfd;
 	struct sockaddr_in addr_s;
 	int i;
+	struct pollfd pfd;
+
+	pfd.fd = sfd;
+	pfd.events = POLLIN; // Waiting for data to read
+	pfd.revents = 0;
 
 	build_request(req_p, buff);
-	printf("Request built: \"%s\"\n", buff);
-	for(i=0 ; i<=strlen(buff) ; ++i) {
-		printf("%d: %d\n", i, buff[i]);
-	}
 	init_connection(&sfd, &addr_s);
 	check(send(sfd, buff, strlen(buff)+1, 0), "Error sending");
-	printf("PLACE request sent.\n%d bytes sent.\n", (int) strlen(buff));
+	if(buff_p != NULL) {
+		check(poll(&pfd, 1, TIMEOUT), "Error polling");
+		check(recv(sfd, buff_p, MAX_REQ, 0), "Error receiving");
+	}
 	close(sfd);
 }

@@ -20,6 +20,7 @@
 # include <sys/socket.h>
 # include <netinet/ip.h>
 # include <netinet/in.h>
+# include <poll.h>
 
 // Defines and macros
 # define SERVER_ADDR "127.0.0.1"
@@ -29,6 +30,7 @@
 
 # define MAX_ARG 30
 # define MAX_REQ 200
+# define TIMEOUT 60
 
 # define check(sts,msg) if((sts) == -1) { \
 	perror(msg); exit(EXIT_FAILURE);}
@@ -42,6 +44,7 @@ typedef struct req_t {
 // Prototypes
 void build_request(req_t*, char[MAX_REQ]);
 void init_connection(int*, struct sockaddr_in*);
+void send_request(req_t*, char[MAX_REQ]);
 void parse_request(req_t*);
 
 # endif

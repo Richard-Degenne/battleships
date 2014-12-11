@@ -29,8 +29,9 @@ int main(int argc, char* argv[]) {
 		check(recv(sfd_c, buff, MAX_REQ, 0), "Error recieving");
 		printf("Received: \"%s\"\n%d bytes recieved.\n", buff, (int)strlen(buff));
 		printf("Reply: ");
-		scanf("%s", buff);
+		fgets(buff, MAX_REQ, stdin);
 		check(send(sfd_c, buff, strlen(buff), 0), "Error sending");
+		printf("Sent: \"%s\"\n", buff);
 		close(sfd_c);
 	}
 	return EXIT_SUCCESS;
