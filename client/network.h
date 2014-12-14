@@ -27,9 +27,11 @@
 # define SERVER_PORT 5000
 # define PLACE_REQ 1
 # define FIRE_REQ 2
+# define ACK_REQ "OK"
 
 # define MAX_ARG 30
 # define MAX_REQ 200
+# define MAX_RES 3
 # define TIMEOUT 60
 
 # define check(sts,msg) if((sts) == -1) { \
@@ -44,7 +46,6 @@ typedef struct req_t {
 // Prototypes
 void build_request(req_t*, char[MAX_REQ]);
 void init_connection(int*, struct sockaddr_in*);
-void send_request(req_t*, char[MAX_REQ]);
-void parse_request(req_t*);
+void send_request(req_t*, char [MAX_RES][MAX_REQ], int);
 
 # endif
