@@ -51,7 +51,7 @@ void print_grid(grid);
 void update_grid(grid, char[MAX_REQ]);
 void send_boat(boat*, int);
 coord select_fire_coord(grid);
-void send_fire(coord, char[MAX_REQ]);
+void send_fire(coord, char*[MAX_REQ]);
 
 // Misc
 int select_char_coord();

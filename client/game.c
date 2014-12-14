@@ -14,13 +14,13 @@ int main(int argc, char* argv[]) {
 	coord fire;
 	boat fleet[FLEET_SIZE];
 	int i;
-	char response[MAX_REQ];
+	char responses[MAX_RES][MAX_REQ];
 
 	setup_fleet(fleet);
 	reset_grid(primary);
 	reset_grid(tracking);
 	
-	for(i=0 ; i < FLEET_SIZE ; ++i) {
+	for(i=0 ; i < 1 ; ++i) {
 		print_grid(primary);
 		printf(">> %s\n", fleet[i].name);
 		select_boat_coord(&fleet[i], primary);
@@ -28,10 +28,10 @@ int main(int argc, char* argv[]) {
 		send_boat(&fleet[i], i);
 	}
 	while(1) {
+		// This player's turn
 		fire = select_fire_coord(tracking);
-		send_fire(fire, response);
-		printf("Received: \"%s\"\n", response);
-		update_grid(tracking, response);
+		send_fire(fire, responses);
+		update_grid(tracking, responses[0]);
 		print_grid(tracking);
 	}
 	return EXIT_SUCCESS;
@@ -260,7 +260,7 @@ void send_boat(boat* boat_p, int id) {
 	sprintf(request.args[3], "%d", boat_p->end.x);
 	sprintf(request.args[4], "%d", boat_p->end.y);
 
-	send_request(&request, NULL);
+	send_request(&request, NULL, 0);
 }
 
 
@@ -284,15 +284,14 @@ coord select_fire_coord(grid grid_p) {
  *
  * Sets up a request and sends it to the host server.
  */
-void send_fire(coord coord_p, char buff_p[MAX_REQ]) {
+void send_fire(coord coord_p, char* buff_p[MAX_RES]) {
 	req_t request;
-	char buff[MAX_REQ];
 
 	request.type = FIRE_REQ;
 	sprintf(request.args[0], "%d", coord_p.x);
 	sprintf(request.args[1], "%d", coord_p.y);
 
-	send_request(&request, buff_p);
+	send_request(&request, buff_p, 1);
 }
 
 

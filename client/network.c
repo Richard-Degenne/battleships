@@ -65,25 +65,25 @@ void init_connection(int* sfd_p, struct sockaddr_in* addr_p) {
 /*
  * send_request()
  *
- * Sends a request.
+ * Sends a request. If response_p == 1, will wait for responses from the
+ * server until a `TURN` request and will store them in buff_p.
  */
- void send_request(req_t* req_p, char buff_p[MAX_REQ]) {
+ void send_request(req_t* req_p, char buff_p[MAX_RES][MAX_REQ], int response_p) {
 	char buff[MAX_REQ];
 	int sfd;
 	struct sockaddr_in addr_s;
-	int i;
-	struct pollfd pfd;
-
-	pfd.fd = sfd;
-	pfd.events = POLLIN; // Waiting for data to read
-	pfd.revents = 0;
+	int i=-1, j;
+	char buff_med[MAX_REQ];
 
 	build_request(req_p, buff);
 	init_connection(&sfd, &addr_s);
 	check(send(sfd, buff, strlen(buff)+1, 0), "Error sending");
 	if(buff_p != NULL) {
-		check(poll(&pfd, 1, TIMEOUT), "Error polling");
-		check(recv(sfd, buff_p, MAX_REQ, 0), "Error receiving");
+		do {
+			i++;
+			check(recv(sfd, buff_med, MAX_REQ, 0), "Error receiving");
+			strcpy(buff_p[i], buff_med);
+		} while(i<2 && strcmp(buff_p[i], "TURN")); // TURN mean end of transmission
 	}
 	close(sfd);
 }
