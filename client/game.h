@@ -16,13 +16,16 @@
 # include <stdio.h>
 # include <string.h>
 # include <ctype.h>
+# include "network.h"
 
 // Defines and macros
+# define FLEET_SIZE 6
 # define X_SIZE 10
 # define Y_SIZE 10
-# define FLEET_SIZE 6
 
 # define EMPTY_SQ '.'
+# define MISS_SQ '-'
+# define HIT_SQ 'X'
 
 # define max(a,b) (((a)>(b)) ? (a) : (b))
 # define min(a,b) (((a)<(b)) ? (a) : (b))
@@ -41,12 +44,18 @@ typedef struct boat {
 
 // Prototypes
 void setup_fleet(boat[]);
+void select_boat_coord(boat*, grid);
 void reset_grid(grid);
-void select_boat_coord(boat*);
 void place_boat(boat*, grid);
 void print_grid(grid);
+void update_grid(grid, char[MAX_REQ]);
+void send_boat(boat*, int);
+coord select_fire_coord(grid);
+void send_fire(coord, char*[MAX_REQ]);
 
 // Misc
+int select_char_coord();
+int select_int_coord();
 void flush();
 
 
