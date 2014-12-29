@@ -1,14 +1,14 @@
 /*
- * network.h
+ * overall_net.h
  *
  * Richard Degenne - Adrien Deprez
- * 09/12/14
+ * 15/12/14
  *
- * Header for the network.c file.
+ * Header for the overall_net.c file.
  */
 
-# ifndef _NETWORK_H
-# define _NETWORK_H 1
+# ifndef _OVERALL_NET_H
+# define _OVERALL_NET_H 1
 
 
 // Includes
@@ -20,32 +20,39 @@
 # include <sys/socket.h>
 # include <netinet/ip.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <poll.h>
 
 // Defines and macros
 # define SERVER_ADDR "127.0.0.1"
-# define SERVER_PORT 5000
+# define SERVER_PORT 5001
 # define PLACE_REQ 1
 # define FIRE_REQ 2
-# define ACK_REQ "OK"
 
 # define MAX_ARG 30
 # define MAX_REQ 200
-# define MAX_RES 3
+# define MAX_NAME 50
+# define MAX_GAMES 100
 # define TIMEOUT 60
 
 # define check(sts,msg) if((sts) == -1) { \
 	perror(msg); exit(EXIT_FAILURE);}
 
 // Structures
-typedef struct req_t {
-	int type; // PLACE_REQ or FIRE_REQ
-	char args[5][MAX_ARG];
-} req_t;
+typedef struct game {
+	char name[MAX_NAME];
+	struct sockaddr_in addr;
+} game_t;
 
+typedef struct opponent {
+	int sfd;
+	struct sockaddr_in addr;
+	int addr_len;
+	char name[MAX_NAME];
+} opponent_t;
 // Prototypes
-void build_request(req_t*, char[MAX_REQ]);
-void init_connection(int*, struct sockaddr_in*);
-void send_request(req_t*, char [MAX_RES][MAX_REQ], int);
+void sign_in(char*, int*, int*);
+int get_games(int, game_t[]);
+void print_games(game_t[], int);
 
 # endif

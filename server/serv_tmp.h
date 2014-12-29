@@ -20,6 +20,7 @@
 # include <sys/socket.h>
 # include <netinet/ip.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 
 // Defines and macros
 # define SERVER_ADDR "127.0.0.1"
@@ -38,10 +39,5 @@ typedef struct req_t {
 	int type; // PLACE_REQ or FIRE_REQ
 	char args[5][MAX_ARG];
 } req_t;
-
-// Prototypes
-void build_request(req_t*, char[MAX_REQ]);
-void init_connection(int*, struct sockaddr_in*);
-void parse_request(req_t*);
 
 # endif
