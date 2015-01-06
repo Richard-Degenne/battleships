@@ -14,24 +14,22 @@ int main(int argc, char* argv[]) {
 	struct sockaddr_in addr_s, addr_c;
 	int addr_c_len = sizeof(addr_c);
 	char buff[MAX_REQ], cmd[MAX_ARG];
-	int i=0;
+	int i=0, pid;
 
 	// Creating listening socket
 	check(sfd_s = socket(AF_INET, SOCK_STREAM, 0), "Error creating socket");
 	addr_s.sin_family = AF_INET;
-	if(argc > 1) {
-		addr_s.sin_port = htons(SERVER_PORT+1);
-	}
-	else {
-		addr_s.sin_port = htons(SERVER_PORT);
-	}
+	addr_s.sin_port = htons(SERVER_PORT);
 
 	inet_aton(SERVER_ADDR, &(addr_s.sin_addr));
 	check(bind(sfd_s, (struct sockaddr*)&addr_s, sizeof(addr_s)), "Error binding");
 	check(listen(sfd_s, 5), "Error listening");
 	// Accepting connection
-	printf("Waiting...\n");
-	check(sfd_c = accept(sfd_s, (struct sockaddr*)&addr_c, &addr_c_len), "Error accepting");
+	do {
+		printf("Waiting...\n");
+		check(sfd_c = accept(sfd_s, (struct sockaddr*)&addr_c, &addr_c_len), "Error accepting");
+		check(pid = fork(), "Error forking");
+	} while(pid != 0);
 
 	// Main loop
 	while(1) {
