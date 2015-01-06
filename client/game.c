@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 	reset_grid(primary);
 	reset_grid(tracking);
 	
-	for(i=0 ; i < 1 ; ++i) {
+	for(i=0 ; i < FLEET_SIZE ; ++i) {
 		print_grid(primary);
 		printf(">> %s\n", fleet[i].name);
 		select_boat_coord(&fleet[i], primary);

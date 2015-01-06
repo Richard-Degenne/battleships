@@ -44,25 +44,20 @@ Server
 Requests
 ======== 
 
-Every request must be acquitted with a "OK" answer.
-
-HOST <player_name>
-------------------
+HOST <player_name> <listen_port> <mode>
+---------------------------------------
 	From: A player who has entered "Host a game" menu
 	To: Host server and central server
-	Example: HOST Richou_D_Degenne
+	Example: HOST Richou_D_Degenne 36742 0
 	
-	A player has created a game, and is waiting for another player to join. The
-	central server creates an entry is the table of "available games". The host
-	servers starts listening for a JOIN request (see below).
+	A player has connected to the server. Mode 0: Host. Mode 1: Join
 
 CANCEL
 ------
 	From: A player who has exited the "Host a game" menu
 	To: Central server
 
-	A player has cancelled the game he was hosting. The central server removes
-	the entry in the "available games" list for this game.
+	A player has cancelled his connection.
 
 GAMES
 -----
@@ -73,7 +68,7 @@ GAMES
 	The central server answers with a GAME request for each available game.
 
 GAME <host_name> <host_address> <host_port> <ready_state>
----------------------------------------------
+---------------------------------------------------------
 	From: Central server
 	To: A player who has entered the "Join a game" menu
 	Example: GAME Richou_D_Degenne 82.58.164.35 6357 1
@@ -81,22 +76,22 @@ GAME <host_name> <host_address> <host_port> <ready_state>
 	The central server describes a game with its host name, IP address and port,
 	and tells if the game has already been joined by someone else.
 
-JOIN <joining_player_name> <host_player_name>
+JOIN <host_name> <host_address> <host_port>
 ---------------------------------------------
 	From: A player who has selected a game from the "Join a game" menu.
 	To: Host server and central server
-	Example: JOIN Pataprout Richou_D_Degenne
+	Example: JOIN Pataprout 192.168.1.4 55237
 	
 	A player has joined a game. Opens a socket between the two players and the
-	server mark the game as ready. The host server stops listening for JOIN
+	server mark the game as ready. The host client stops listening for JOIN
 	requests.
 
 	
-START <host_player_name> <join_player_name>
--------------------------------------------
+START
+-----
 	From: Host player when clicking "Start"
 	To: Joining player and central server
-	Example: START Pataprout Richou_D_Degenne
+	Example: START
 	
 	When both players are ready, the host one has clicked "Start". The central
 	server removes the entry from the "available games" list and adds it to the
