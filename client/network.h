@@ -20,14 +20,16 @@
 # include <sys/socket.h>
 # include <netinet/ip.h>
 # include <netinet/in.h>
-# include <poll.h>
 
 // Defines and macros
 # define SERVER_ADDR "127.0.0.1"
 # define SERVER_PORT 5000
 # define PLACE_REQ 1
 # define FIRE_REQ 2
-# define ACK_REQ "OK"
+# define HIT_REQ 3
+# define MISS_REQ 4
+# define SINK_REQ 5
+# define TURN_REQ 6
 
 # define MAX_ARG 30
 # define MAX_REQ 200
@@ -39,13 +41,13 @@
 
 // Structures
 typedef struct req_t {
-	int type; // PLACE_REQ or FIRE_REQ
+	int sfd;
+	int type;
 	char args[5][MAX_ARG];
 } req_t;
 
 // Prototypes
-void build_request(req_t*, char[MAX_REQ]);
-void init_connection(int*, struct sockaddr_in*);
-void send_request(req_t*, char [MAX_RES][MAX_REQ], int);
-
+void build_request(req_t*, char*);
+void send_request(req_t*);
+void wait_request(char*, int);
 # endif

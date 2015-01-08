@@ -219,7 +219,8 @@ void wait_start(int sfd_s, int sfd_o) {
  		getchar();
  		send_start(sfd_s, opponent);
  	}
- 	printf("Game starts!\n");
+ 	printf("Game starts!");
+	getchar();
  	return EXIT_SUCCESS;
  }
 */

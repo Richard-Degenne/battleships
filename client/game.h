@@ -16,6 +16,7 @@
 # include <stdio.h>
 # include <string.h>
 # include <ctype.h>
+# include <pthread.h>
 # include "network.h"
 
 // Defines and macros
@@ -37,6 +38,7 @@ typedef struct coord {
 	int y;
 } coord;
 typedef struct boat {
+	int id;
 	char name[30];
 	int lenght;
 	coord start, end;
@@ -48,15 +50,21 @@ void select_boat_coord(boat*, grid);
 void reset_grid(grid);
 void place_boat(boat*, grid);
 void print_grid(grid);
-void update_grid(grid, char[MAX_REQ]);
+void update_grid(grid, char*);
 void send_boat(boat*, int);
 coord select_fire_coord(grid);
-void send_fire(coord, char*[MAX_REQ]);
+void check_fire(coord, grid, grid);
+coord wait_fire();
+void receive_fire(grid);
+void send_fire(coord);
 
 // Misc
 int select_char_coord();
 int select_int_coord();
 void flush();
+int sunk(char, grid);
 
+// Thread routine
+void* receive_boat(void*);
 
 # endif // _GAME_H defined
