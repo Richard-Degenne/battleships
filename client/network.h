@@ -42,12 +42,12 @@
 // Structures
 typedef struct req_t {
 	int sfd;
-	int type; // PLACE_REQ or FIRE_REQ
+	int type;
 	char args[5][MAX_ARG];
 } req_t;
 
 // Prototypes
 void build_request(req_t*, char*);
-void send_request(req_t*, char**, int);
-
+void send_request(req_t*);
+void wait_request(char*, int);
 # endif

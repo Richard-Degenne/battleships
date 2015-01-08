@@ -4,3 +4,4 @@
 !.gitignore
 !*\.c
 !*\.h
+!makefile

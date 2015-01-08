@@ -26,6 +26,7 @@ void setup_fleet (boat fleet_p[]) {
 	int i;
 
 	for(i=0 ; i<FLEET_SIZE ; ++i) { // For each boat
+		fleet_p[i].id = i;
 		strcpy(fleet_p[i].name, names[i]);
 		fleet_p[i].lenght = lenghts[i];
 		fleet_p[i].start.x = -1;
@@ -162,12 +163,12 @@ void place_boat(boat* boat_p, grid grid_p) {
 	int i;
 	if(x_start == x_final) { // Vertical
 		for(i=y_start ; i<=y_final ; ++i) {
-			grid_p[x_start][i] = boat_p->name[0];
+			grid_p[x_start][i] = boat_p->id;
 		}
 	}
 	else if(y_start == y_final) { // Horizontal
 		for(i=x_start ; i<=x_final ; ++i) {
-			grid_p[i][y_start] = boat_p->name[0];
+			grid_p[i][y_start] = boat_p->id;
 		}
 	}
 	else { // Not vertical nor horizontal
@@ -237,7 +238,7 @@ void send_boat(boat* boat_p, int id) {
 	sprintf(request.args[3], "%d", boat_p->end.x);
 	sprintf(request.args[4], "%d", boat_p->end.y);
 
-	send_request(&request, NULL, 0);
+	send_request(&request);
 }
 
 
@@ -273,13 +274,13 @@ void check_fire(coord fire, grid target, grid display) {
 		report.type = HIT_REQ;
 		sprintf(report.args[0], "%d", fire.x);
 		sprintf(report.args[1], "%d", fire.y);
-		send_request(&report, NULL, 0);
+		send_request(&report);
 		// Test sink
 		if(sunk(hit, target)) {
 			// Sunk
 			report.type = SINK_REQ;
-			// TODO: Get boat id 
-			send_request(&report, NULL, 0);
+			sprintf(report.args[0], "%d", hit);
+			send_request(&report);
 		}
 	}
 	else {
@@ -287,11 +288,11 @@ void check_fire(coord fire, grid target, grid display) {
 		report.type = MISS_REQ;
 		sprintf(report.args[0], "%d", fire.x);
 		sprintf(report.args[1], "%d", fire.y);
-		send_request(&report, NULL, 0);
+		send_request(&report);
 
 	}
 	report.type = TURN_REQ;
-	send_request(&report, NULL, 0);
+	send_request(&report);
 }
 
 
@@ -301,7 +302,11 @@ void check_fire(coord fire, grid target, grid display) {
  * Waits for the joining player to send a `FIRE` request.
  */
 coord wait_fire() {
-
+	char buff[MAX_REQ];
+	coord fire;
+	wait_request(buff, sfd);
+	sscanf(buff, "FIRE %d %d", &(fire.x), &(fire.y));
+	return fire;
 }
 
 
@@ -311,7 +316,28 @@ coord wait_fire() {
  * Waits for the host to send a report for a shot, and updates the `target` grid accordingly.
  */
 void receive_fire(grid target) {
+	char buff[MAX_REQ];
+	char cmd[MAX_ARG];
+	int x, y;
+	do {
+		wait_request(buff, sfd);
+		sscanf(buff, "%s", cmd);
+		if(!strcmp(buff, "HIT")) {
+			// Hit
+			sscanf(buff, "HIT %d %d", &x, &y);
+			target[x][y] = HIT_SQ;
+		}
+		else if(!strcmp(buff, "MISS")) {
+			// Miss
+			sscanf(buff, "MISS %d %d", &x, &y);
+			target[x][y] = MISS_SQ;
+		}
+		else if(!strcmp(buff, "SINK")) {
+			// Sink
+			sscanf(buff, "SINK %d", &x);
+		}
 
+	} while(strcmp(buff, "TURN"));
 }
 
 
@@ -320,7 +346,7 @@ void receive_fire(grid target) {
  *
  * Sets up a request and sends it to the host server.
  */
-void send_fire(coord coord_p, char** buff_p) {
+void send_fire(coord coord_p) {
 	req_t request;
 
 	request.type = FIRE_REQ;
@@ -328,7 +354,7 @@ void send_fire(coord coord_p, char** buff_p) {
 	sprintf(request.args[0], "%d", coord_p.x);
 	sprintf(request.args[1], "%d", coord_p.y);
 
-	send_request(&request, buff_p, 1);
+	send_request(&request);
 }
 
 
@@ -424,7 +450,6 @@ int main(int argc, char* argv[]) {
 	grid primary, tracking;
 	coord fire;
 	boat fleet[FLEET_SIZE];
-	char responses[MAX_RES][MAX_REQ];
 
 	int i;
 	pthread_t th;
@@ -436,7 +461,6 @@ int main(int argc, char* argv[]) {
 	reset_grid(opponent);
 	printf("Grids reset.\n");
 	if(argc == 1) { // Host
-		scanf("%d", &sfd);
 		pthread_create(&th, NULL, receive_boat, NULL);
 		printf("Thread created.\n");
 	}
@@ -459,15 +483,17 @@ int main(int argc, char* argv[]) {
 			// Client turn
 			fire = wait_fire();
 			check_fire(fire, primary, NULL);
+		}
 	}
 	else { // Client
-	while(1) {
-		// Host turn
-		receive_fire(primary);
-		// Client turn
-		fire = select_fire_coord(tracking);
-		send_fire(fire, (char**)responses);
-		receive_fire(tracking);
+		while(1) {
+			// Host turn
+			receive_fire(primary);
+			// Client turn
+			fire = select_fire_coord(tracking);
+			send_fire(fire);
+			receive_fire(tracking);
+		}
 	}
 	return EXIT_SUCCESS;
 }

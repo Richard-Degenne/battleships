@@ -38,6 +38,7 @@ typedef struct coord {
 	int y;
 } coord;
 typedef struct boat {
+	int id;
 	char name[30];
 	int lenght;
 	coord start, end;
@@ -55,13 +56,15 @@ coord select_fire_coord(grid);
 void check_fire(coord, grid, grid);
 coord wait_fire();
 void receive_fire(grid);
-void send_fire(coord, char**);
+void send_fire(coord);
 
 // Misc
 int select_char_coord();
 int select_int_coord();
 void flush();
+int sunk(char, grid);
 
 // Thread routine
 void* receive_boat(void*);
+
 # endif // _GAME_H defined
