@@ -9,33 +9,9 @@
 
 # include "game.h"
 
-int main(int argc, char* argv[]) {
-	grid primary, tracking;
-	coord fire;
-	boat fleet[FLEET_SIZE];
-	int i;
-	char responses[MAX_RES][MAX_REQ];
+int sfd; // Global so thread can access it
+grid opponent;
 
-	setup_fleet(fleet);
-	reset_grid(primary);
-	reset_grid(tracking);
-	
-	for(i=0 ; i < FLEET_SIZE ; ++i) {
-		print_grid(primary);
-		printf(">> %s\n", fleet[i].name);
-		select_boat_coord(&fleet[i], primary);
-		place_boat(&fleet[i],primary);
-		send_boat(&fleet[i], i);
-	}
-	while(1) {
-		// This player's turn
-		fire = select_fire_coord(tracking);
-		send_fire(fire, responses);
-		update_grid(tracking, responses[0]);
-		print_grid(tracking);
-	}
-	return EXIT_SUCCESS;
-}
 
 
 /*
@@ -207,7 +183,7 @@ void place_boat(boat* boat_p, grid grid_p) {
  * Displays a grid in a pretty way.
  */
 void print_grid(grid grid_p) {
-	int x,y;
+	int x, y;
 	printf("   | A | B | C | D | E | F | G | H | I | J |\n--------------------------------------------\n");
 	for(y=0 ; y<Y_SIZE ; ++y) {
 		printf(" %c ", 48+y);
@@ -254,6 +230,7 @@ void send_boat(boat* boat_p, int id) {
 	req_t request;
 	
 	request.type = PLACE_REQ;
+	request.sfd = sfd;
 	sprintf(request.args[0], "%d", id);
 	sprintf(request.args[1], "%d", boat_p->start.x);
 	sprintf(request.args[2], "%d", boat_p->start.y);
@@ -280,14 +257,74 @@ coord select_fire_coord(grid grid_p) {
 
 
 /*
+ * check_fire()
+ *
+ * Checks if a shot hits or misses on `target`, and if it sinks a boat.
+ * Updates `display` grid accordingly and sends a report to the other player.
+ */
+void check_fire(coord fire, grid target, grid display) {
+	req_t report;
+	report.sfd = sfd;
+	char hit = target[fire.x][fire.y];
+
+	if(hit != EMPTY_SQ) {
+		// Hit
+		display[fire.x][fire.y] = HIT_SQ;
+		report.type = HIT_REQ;
+		sprintf(report.args[0], "%d", fire.x);
+		sprintf(report.args[1], "%d", fire.y);
+		send_request(&report, NULL, 0);
+		// Test sink
+		if(sunk(hit, target)) {
+			// Sunk
+			report.type = SINK_REQ;
+			// TODO: Get boat id 
+			send_request(&report, NULL, 0);
+		}
+	}
+	else {
+		// Miss
+		report.type = MISS_REQ;
+		sprintf(report.args[0], "%d", fire.x);
+		sprintf(report.args[1], "%d", fire.y);
+		send_request(&report, NULL, 0);
+
+	}
+	report.type = TURN_REQ;
+	send_request(&report, NULL, 0);
+}
+
+
+/*
+ * wait_fire()
+ *
+ * Waits for the joining player to send a `FIRE` request.
+ */
+coord wait_fire() {
+
+}
+
+
+/*
+ * receive_fire()
+ *
+ * Waits for the host to send a report for a shot, and updates the `target` grid accordingly.
+ */
+void receive_fire(grid target) {
+
+}
+
+
+/*
  * send_fire()
  *
  * Sets up a request and sends it to the host server.
  */
-void send_fire(coord coord_p, char* buff_p[MAX_RES]) {
+void send_fire(coord coord_p, char** buff_p) {
 	req_t request;
 
 	request.type = FIRE_REQ;
+	request.sfd = sfd;
 	sprintf(request.args[0], "%d", coord_p.x);
 	sprintf(request.args[1], "%d", coord_p.y);
 
@@ -338,4 +375,99 @@ void flush() {
 	do {
 		c = getchar();
 	} while(c != '\n' && c != EOF);
+}
+
+
+/*
+ * sunk()
+ *
+ * Tests if a boat has been sunk.
+ * Return: 1 if sunk, 0 otherwise
+ */
+int sunk(char id, grid target) {
+	int i, j;
+
+	for(i=0 ; i<Y_SIZE ; ++i) {
+		for(j=0 ; j<X_SIZE ; ++j) {
+			if(target[i][j] == id) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+
+/*
+ * receive_boat()
+ *
+ * Waits for the opponent to send his/her boats and place them into a grid.
+ */
+void* receive_boat(void* arg) {
+	int i, j, n, dummy;
+	int id;
+	char buff[MAX_REQ];
+	boat fleet[FLEET_SIZE];
+
+	setup_fleet(fleet);
+	for(n=0 ; n<FLEET_SIZE ; ++n) {
+		check(recv(sfd, buff, MAX_REQ, 0), "Error receiving");
+		sscanf(buff, "PLACE %d %d %d %d %d", &dummy, &(fleet[n].start.x), &(fleet[n].start.y), &(fleet[n].end.x), &(fleet[n].end.y));
+
+		place_boat(&(fleet[n]), opponent);
+	}
+
+	pthread_exit(NULL);
+}
+
+int main(int argc, char* argv[]) {
+	grid primary, tracking;
+	coord fire;
+	boat fleet[FLEET_SIZE];
+	char responses[MAX_RES][MAX_REQ];
+
+	int i;
+	pthread_t th;
+
+	setup_fleet(fleet);
+	printf("Fleet set up.\n");
+	reset_grid(primary);
+	reset_grid(tracking);
+	reset_grid(opponent);
+	printf("Grids reset.\n");
+	if(argc == 1) { // Host
+		scanf("%d", &sfd);
+		pthread_create(&th, NULL, receive_boat, NULL);
+		printf("Thread created.\n");
+	}
+	
+	for(i=0 ; i < FLEET_SIZE ; ++i) {
+		print_grid(primary);
+		printf(">> %s\n", fleet[i].name);
+		select_boat_coord(&fleet[i], primary);
+		place_boat(&fleet[i],primary);
+		if(argc > 1) { // Client
+			send_boat(&fleet[i], i);
+		}
+	}
+	if(argc == 1) { // Host
+		pthread_join(th, NULL);
+		while(1) {
+			// Host turn
+			fire = select_fire_coord(tracking);
+			check_fire(fire, opponent, tracking); // NIY
+			// Client turn
+			fire = wait_fire();
+			check_fire(fire, primary, NULL);
+	}
+	else { // Client
+	while(1) {
+		// Host turn
+		receive_fire(primary);
+		// Client turn
+		fire = select_fire_coord(tracking);
+		send_fire(fire, (char**)responses);
+		receive_fire(tracking);
+	}
+	return EXIT_SUCCESS;
 }
