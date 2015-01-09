@@ -30,6 +30,8 @@
 # define MISS_REQ 4
 # define SINK_REQ 5
 # define TURN_REQ 6
+# define WIN_REQ 7
+# define LOSE_REQ 8
 
 # define MAX_ARG 30
 # define MAX_REQ 200

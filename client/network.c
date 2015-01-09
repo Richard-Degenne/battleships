@@ -30,27 +30,38 @@ void build_request(req_t* req_p, char* buffer) {
 			break;
 		case HIT_REQ:
 			strcpy(buffer, "HIT ");
-			argc = 1;
+			argc = 2;
 			break;
 		case MISS_REQ:
 			strcpy(buffer, "MISS ");
-			argc = 1;
+			argc = 2;
 			break;
 		case SINK_REQ:
 			strcpy(buffer, "SINK ");
 			argc = 1;
 			break;
 		case TURN_REQ:
-			strcpy(buffer, "SINK ");
-			argc = 1;
+			strcpy(buffer, "TURN");
+			argc = 0;
+			break;
+		case WIN_REQ:
+			strcpy(buffer, "WIN");
+			argc = 0;
+			break;
+		case LOSE_REQ:
+			strcpy(buffer, "LOSE");
+			argc = 0;
 			break;
 		default:
 			printf("Invalid request code.\n");
 			exit(EXIT_FAILURE);
 	}
 	
-	for(i=0 ; i<argc ; ++i, strcat(buffer, " ")) { // Arguments
+	for(i=0 ; i<argc ; ++i) { // Arguments
 		strcat(buffer, req_p->args[i]);
+		if(i!=argc-1) {
+			strcat(buffer, " ");
+		}
 	}
 }
 
@@ -66,6 +77,7 @@ void send_request(req_t* req_p) {
 
 	build_request(req_p, buff);
 	check(send(req_p->sfd, buff, strlen(buff)+1, 0), "Error sending");
+	printf("Sent: \"%s\"\n", buff);
 }
 
 
@@ -76,4 +88,5 @@ void send_request(req_t* req_p) {
  */
 void wait_request(char* buffer, int sfd) {
 	check(recv(sfd, buffer, MAX_REQ, 0), "Error receiveing");
+	printf("Received: \"%s\"\n", buffer);
 }

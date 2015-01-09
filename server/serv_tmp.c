@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 	} while(pid != 0);
 
 	// Main loop
-	while(1) {
+	while(strcmp(buff, "QUIT")) {
 
 		// Receiving request
 		check(recv(sfd_c, buff, MAX_REQ, 0), "Error recieving");
@@ -51,5 +51,8 @@ int main(int argc, char* argv[]) {
 			printf("End of this response.\n");
 		}
 	}
+	close(sfd_s);
+	close(sfd_c);
+
 	return EXIT_SUCCESS;
 }

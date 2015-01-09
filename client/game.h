@@ -20,12 +20,12 @@
 # include "network.h"
 
 // Defines and macros
-# define FLEET_SIZE 6
+# define FLEET_SIZE 1
 # define X_SIZE 10
 # define Y_SIZE 10
 
 # define EMPTY_SQ '.'
-# define MISS_SQ '-'
+# define MISS_SQ 'O'
 # define HIT_SQ 'X'
 
 # define max(a,b) (((a)>(b)) ? (a) : (b))
@@ -55,8 +55,10 @@ void send_boat(boat*, int);
 coord select_fire_coord(grid);
 void check_fire(coord, grid, grid);
 coord wait_fire();
-void receive_fire(grid);
+int receive_fire(grid);
 void send_fire(coord);
+int check_win(grid, boat*);
+void send_win(int);
 
 // Misc
 int select_char_coord();

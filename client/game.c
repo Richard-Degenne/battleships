@@ -163,12 +163,12 @@ void place_boat(boat* boat_p, grid grid_p) {
 	int i;
 	if(x_start == x_final) { // Vertical
 		for(i=y_start ; i<=y_final ; ++i) {
-			grid_p[x_start][i] = boat_p->id;
+			grid_p[x_start][i] = boat_p->id + 48;
 		}
 	}
 	else if(y_start == y_final) { // Horizontal
 		for(i=x_start ; i<=x_final ; ++i) {
-			grid_p[i][y_start] = boat_p->id;
+			grid_p[i][y_start] = boat_p->id + 48;
 		}
 	}
 	else { // Not vertical nor horizontal
@@ -239,6 +239,7 @@ void send_boat(boat* boat_p, int id) {
 	sprintf(request.args[4], "%d", boat_p->end.y);
 
 	send_request(&request);
+	printf("Boat sent.\n");
 }
 
 
@@ -267,32 +268,42 @@ void check_fire(coord fire, grid target, grid display) {
 	req_t report;
 	report.sfd = sfd;
 	char hit = target[fire.x][fire.y];
+	char ack[MAX_REQ];
 
 	if(hit != EMPTY_SQ) {
 		// Hit
+		printf("Hit!\n");
 		display[fire.x][fire.y] = HIT_SQ;
 		report.type = HIT_REQ;
 		sprintf(report.args[0], "%d", fire.x);
 		sprintf(report.args[1], "%d", fire.y);
 		send_request(&report);
+		wait_request(ack, sfd);
+		
 		// Test sink
 		if(sunk(hit, target)) {
 			// Sunk
+			printf("Sank boat \"%c\"!\n", hit);
 			report.type = SINK_REQ;
 			sprintf(report.args[0], "%d", hit);
 			send_request(&report);
+		wait_request(ack, sfd);
 		}
 	}
 	else {
 		// Miss
+		printf("Missed!\n");
+		display[fire.x][fire.y] = MISS_SQ;
 		report.type = MISS_REQ;
 		sprintf(report.args[0], "%d", fire.x);
 		sprintf(report.args[1], "%d", fire.y);
 		send_request(&report);
-
+		wait_request(ack, sfd);
 	}
 	report.type = TURN_REQ;
 	send_request(&report);
+	wait_request(ack, sfd);
+	printf("Fire checked.\n");
 }
 
 
@@ -306,6 +317,7 @@ coord wait_fire() {
 	coord fire;
 	wait_request(buff, sfd);
 	sscanf(buff, "FIRE %d %d", &(fire.x), &(fire.y));
+	printf("Fire received!\n");
 	return fire;
 }
 
@@ -315,29 +327,40 @@ coord wait_fire() {
  *
  * Waits for the host to send a report for a shot, and updates the `target` grid accordingly.
  */
-void receive_fire(grid target) {
+int receive_fire(grid target) {
 	char buff[MAX_REQ];
 	char cmd[MAX_ARG];
-	int x, y;
+	int x, y, result = 0;
 	do {
+		printf("Waiting report...\n");
 		wait_request(buff, sfd);
+		printf("Report received.\n");
 		sscanf(buff, "%s", cmd);
-		if(!strcmp(buff, "HIT")) {
+		
+		if(!strcmp(cmd, "HIT")) {
 			// Hit
+			printf("Hit!\n");
 			sscanf(buff, "HIT %d %d", &x, &y);
 			target[x][y] = HIT_SQ;
 		}
-		else if(!strcmp(buff, "MISS")) {
+		else if(!strcmp(cmd, "MISS")) {
 			// Miss
+			printf("Missed!\n");
 			sscanf(buff, "MISS %d %d", &x, &y);
 			target[x][y] = MISS_SQ;
 		}
-		else if(!strcmp(buff, "SINK")) {
+		else if(!strcmp(cmd, "SINK")) {
 			// Sink
+			printf("A boat has been sunk!");
 			sscanf(buff, "SINK %d", &x);
 		}
+		else if(!strcmp(cmd, "WIN") || !strcmp(cmd, "LOSE")) {
+			result = 1;
+		}
+		check(send(sfd, "OK", 3, 0), "Error sending"); // Ack
 
-	} while(strcmp(buff, "TURN"));
+	} while(strcmp(cmd, "TURN") && strcmp(cmd, "WIN") && strcmp(cmd, "LOSE"));
+	return result;
 }
 
 
@@ -355,6 +378,46 @@ void send_fire(coord coord_p) {
 	sprintf(request.args[1], "%d", coord_p.y);
 
 	send_request(&request);
+	printf("Fire sent.\n");
+}
+
+
+/*
+ * check_win()
+ * 
+ * Checks whether a player has won. If yes, returns 1. Returns 0 otherwise.
+ */
+int check_win(grid target, boat* fleet) {
+	int i, j, k;
+	
+	for(i=0 ; i<FLEET_SIZE ; ++i) {
+		for(j=0 ; j<X_SIZE ; ++j) {
+			for(k=0 ; k<Y_SIZE ; ++k) {
+				if(target[j][k] == fleet[i].id + 48) {
+					return 0;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+
+/*
+ * send_win()
+ *
+ * Sends a `WIN` or a `LOSE` request according to `mode`.
+ */
+void send_win(int mode) {
+	req_t req;
+	req.sfd = sfd;
+	if(mode) {
+		req.type = WIN_TYPE;
+	}
+	else {
+		req.type = LOSE_TYPE;
+	}
+	send_request(&req);
 }
 
 
@@ -441,11 +504,13 @@ void* receive_boat(void* arg) {
 		sscanf(buff, "PLACE %d %d %d %d %d", &dummy, &(fleet[n].start.x), &(fleet[n].start.y), &(fleet[n].end.x), &(fleet[n].end.y));
 
 		place_boat(&(fleet[n]), opponent);
+		printf("Boat received.\n");
 	}
 
 	pthread_exit(NULL);
 }
 
+/*
 int main(int argc, char* argv[]) {
 	grid primary, tracking;
 	coord fire;
@@ -497,3 +562,4 @@ int main(int argc, char* argv[]) {
 	}
 	return EXIT_SUCCESS;
 }
+*/
