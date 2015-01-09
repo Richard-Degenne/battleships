@@ -77,7 +77,6 @@ void send_request(req_t* req_p) {
 
 	build_request(req_p, buff);
 	check(send(req_p->sfd, buff, strlen(buff)+1, 0), "Error sending");
-	printf("Sent: \"%s\"\n", buff);
 }
 
 
@@ -88,5 +87,4 @@ void send_request(req_t* req_p) {
  */
 void wait_request(char* buffer, int sfd) {
 	check(recv(sfd, buffer, MAX_REQ, 0), "Error receiveing");
-	printf("Received: \"%s\"\n", buffer);
 }

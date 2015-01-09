@@ -1,10 +1,10 @@
 /*
- * game.c
+ * main.c
  *
  * Richard Degenne - Adrien Deprez
  * 06/12/14
  *
- * Contains functions for the game mechanism itself.
+ * Main program
  */
 
 # include "game.h"
@@ -66,19 +66,16 @@ int main(int argc, char* argv[]) {
 	sfd = connected.sfd; // Make the created sfd global
 
 	setup_fleet(fleet);
-	printf("Fleet set up.\n");
 	reset_grid(primary);
 	reset_grid(tracking);
 	reset_grid(opponent);
-	printf("Grids reset.\n");
 	if(!mode) { // Host
 		pthread_create(&th, NULL, receive_boat, NULL);
-		printf("Thread created.\n");
 	}
 	
 	for(i=0 ; i < FLEET_SIZE ; ++i) {
 		print_grid(primary);
-		printf(">> %s (%d)\n", fleet[i].name, fleet[i].id);
+		printf(">> %s \n", fleet[i].name);
 		select_boat_coord(&fleet[i], primary);
 		place_boat(&fleet[i],primary);
 		if(mode) { // Client
@@ -86,27 +83,33 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	if(!mode) { // Host
+		printf("Waiting for the opponent to finish placing his boats...\n");
 		pthread_join(th, NULL);
-		printf("Thread joined.\n");
 		while(1) {
 			// Host turn
+			print_grid(primary);
+			printf("You\n——————————————————————————\n");
+			print_grid(tracking);
+			printf("Opponent\n——————————————————————————\n");
+			printf("It's your turn!\n");
+			fire = select_fire_coord(tracking);
+			check_fire(fire, opponent, tracking);
+			if(check_win(opponent, fleet)) {
+				send_win(0);
+				printf("+----------+\n| You won! |\n+----------+\n");
+				break;
+			}
 			print_grid(primary);
 			printf("Primary\n——————————————————————————\n");
 			print_grid(tracking);
 			printf("Tracking\n——————————————————————————\n");
-			printf("It's your turn!\n");
-			fire = select_fire_coord(tracking);
-			check_fire(fire, opponent, tracking);
-			if(check_win(tracking, &fleet)) {
-				send_win(0, sfd);
-				break;
-			}
 			printf("End of your turn.\nWaiting for the opponent to fire...\n");
 			// Client turn
 			fire = wait_fire();
 			check_fire(fire, primary, primary);
-			if(check_win(primary, &fleet)) {
-				send_win(1, sfd);
+			if(check_win(primary, fleet)) {
+				send_win(1);
+				printf("+-----------+\n| You lost! |\n+-----------+\n");
 				break;
 			}
 		}
@@ -114,9 +117,13 @@ int main(int argc, char* argv[]) {
 	else { // Client
 		while(1) {
 			// Host turn
+			print_grid(primary);
+			printf("Primary\n——————————————————————————\n");
+			print_grid(tracking);
+			printf("Tracking\n——————————————————————————\n");
 			printf("Waiting for the opponent to fire...\n");
 			if(receive_fire(primary)) {
-				printf("You lost!\n");
+				printf("+-----------+\n| You lost! |\n+-----------+\n");
 				break;
 			}
 			// Client turn
@@ -128,7 +135,7 @@ int main(int argc, char* argv[]) {
 			fire = select_fire_coord(tracking);
 			send_fire(fire);
 			if(receive_fire(tracking)) {
-				printf("You won!\n");
+				printf("+----------+\n| You won! |\n+----------+\n");
 				break;
 			}
 			

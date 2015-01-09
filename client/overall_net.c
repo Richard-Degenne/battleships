@@ -28,7 +28,6 @@ void sign_in(char* nick, int* sfd_server, int* sfd_listen, int mode) {
 	check(bind(*sfd_listen, (struct sockaddr*)&addr, sizeof(addr)), "Error binding");
 	check(listen(*sfd_listen, 1), "Error listening");
 	check(getsockname(*sfd_listen, (struct sockaddr*)&addr_l, &len), "Error getting socket name");
-	printf("Listening socket created.\n");
 
 	// Connecting to server
 	addr_s.sin_family = AF_INET;
@@ -37,14 +36,10 @@ void sign_in(char* nick, int* sfd_server, int* sfd_listen, int mode) {
 
 	check(*sfd_server = socket(AF_INET, SOCK_STREAM, 0), "Error creating socket");
 	check(connect(*sfd_server, (struct sockaddr*)&addr_s, sizeof(addr_s)), "Error connecting");
-	printf("Connected to server.\n");
 
 	// Sending listening socket info
-	printf("Nick: \"%s\"\nPort:\"%d\"\n", nick, ntohs(addr_l.sin_port));
 	sprintf(buff, "HOST %s %d %d", nick, ntohs(addr_l.sin_port), mode); // HOST <nick> <port> <mode>
-	printf("Request built.\n");
 	check(send(*sfd_server, buff, strlen(buff)+1, 0), "Error sending");
-	printf("Sent: \"%s\"\n", buff);
 }
 
 
@@ -61,13 +56,11 @@ int get_games(int sfd, game_t tab_p[]) {
 	
 	// Sending a GAMES request
 	check(send(sfd, "GAMES", strlen("GAMES")+1, 0), "Error sending");
-	printf("Sent: \"GAMES\"\n");
 
 	// Receiving GAME responses
 	do {
 		i++;
 		check(recv(sfd, buff, MAX_REQ, 0), "Error receiving");
-		printf("Game recieved: \"%s\"\n", buff);
 		sscanf(buff, "GAME %s %s %d %d", tab_p[i].name, buff_addr, &buff_port, &(tab_p[i].available));
 		inet_aton(buff_addr, &(tab_p[i].addr.sin_addr));
 		tab_p[i].addr.sin_port = htons(buff_port);
@@ -101,7 +94,7 @@ void connect_player(game_t game_p, int* sfd_p, int sfd_s) {
 	// Connect to host
 	check(*sfd_p = socket(AF_INET, SOCK_STREAM, 0), "Error creating socket");
 	check(connect(*sfd_p, (struct sockaddr*)&(game_p.addr), sizeof(game_p.addr)), "Error connecting");
-	printf("Client connected to %s\n", game_p.name);
+	printf("You are connected to %s\n", game_p.name);
 
 	// Send a JOIN request to the server
 	sprintf(buff, "JOIN %s %s %d", game_p.name, inet_ntoa(game_p.addr.sin_addr), ntohs(game_p.addr.sin_port));
@@ -117,7 +110,6 @@ void connect_player(game_t game_p, int* sfd_p, int sfd_s) {
 void accept_player(int sfd_l, opponent_t* opponent_p) {
 	opponent_p->addr_len = sizeof(opponent_p->addr);
 	check(opponent_p->sfd = accept(sfd_l, (struct sockaddr*)&(opponent_p->addr), &(opponent_p->addr_len)), "Error accepting");
-	printf("Accepted a player.\n");
 }
 
 
@@ -131,7 +123,6 @@ void send_name(int sfd_p, char* name_p) {
 	strcat(buff, "NAME ");
 	strcat(buff, name_p);
 	check(send(sfd_p, buff, strlen(buff)+1, 0), "Error sending.");
-	printf("Sent: \"%s\"\n", buff);
 }
 
 
@@ -145,7 +136,7 @@ void wait_name(opponent_t* opponent_p) {
 
 	check(recv(opponent_p->sfd, buff, MAX_REQ, 0), "Error receiving");
 	sscanf(buff, "NAME %s", opponent_p->name);
-	printf("Opponent name is \"%s\"\n", opponent_p->name);
+	printf("%s has joined you.\n", opponent_p->name);
 }
 
 
@@ -159,9 +150,7 @@ void send_start(int sfd_s, opponent_t o) {
 	
 	strcat(buff, "START");
 	check(send(sfd_s, buff, strlen(buff)+1, 0), "Error sending");
-	printf("Sent to server: \"%s\"\n", buff);
 	check(send(o.sfd, buff, strlen(buff)+1, 0), "Error sending");
-	printf("Sent to opponent: \"%s\"\n", buff);
 }
 
 
@@ -174,7 +163,6 @@ void wait_start(int sfd_s, int sfd_o) {
 	char buff[MAX_REQ] = "";
 	do {
 		check(recv(sfd_o, buff, MAX_REQ, 0), "Error receiving");
-		printf("Received: \"%s\"\n", buff);
 	} while(strcmp(buff, "START"));
 }
 
