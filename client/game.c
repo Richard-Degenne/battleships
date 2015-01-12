@@ -247,6 +247,7 @@ void check_fire(coord fire, grid target, grid display) {
 		// Hit
 		printf("+---------------+\n| The shot hit! |\n+---------------+\n");
 		display[fire.x][fire.y] = HIT_SQ;
+		target[fire.x][fire.y] = HIT_SQ;
 		report.type = HIT_REQ;
 		sprintf(report.args[0], "%d", fire.x);
 		sprintf(report.args[1], "%d", fire.y);
@@ -449,7 +450,8 @@ int sunk(char id, grid target) {
 
 	for(i=0 ; i<Y_SIZE ; ++i) {
 		for(j=0 ; j<X_SIZE ; ++j) {
-			if(target[i][j] == id) {
+			if(target[j][i] == id) {
+				printf("Boat '%c' found at (%d,%d).\n", id, j, i);
 				return 0;
 			}
 		}
