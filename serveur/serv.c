@@ -26,12 +26,12 @@ int main(int argc, char* argv[])
 
 	// Construction of the Adress
 	CHECK(serv_sock = socket(AF_INET, SOCK_STREAM,0), "Error : socket");
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	inet_aton("127.0.0.1", &(serv_addr.sin_addr));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(port);
 	memset(&serv_addr.sin_zero,0,8);
 	
-	// Bind listening socket with his adress
+	// Bind listening socket with Threadhis adress
 	CHECK( (bind(serv_sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr))), "Error : bind" );
 	
 	// Listening
@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
 	while(1)
 	{
 		// Waiting for receiving
+		player_tab[i].addr_len = sizeof(player_tab[i].addr_d); //!\\ Initialisation of each player
 		CHECK(player_tab[i].sfd = accept(serv_sock,(struct sockaddr *)&(player_tab[i].addr_d), &(player_tab[i].addr_len)),"Error : accept");
 		// Thread creation
 		pthread_create(&thread, NULL, routine_thread, (void*)&(player_tab[i]));
@@ -60,6 +61,7 @@ void* routine_thread(void* arg)
 	int mode;
 	char name[50];
 	int i = 0;
+	arg_pl->status = AVAILABLE;
 	while(1)
 	{
 		// Receiving a request
@@ -70,21 +72,27 @@ void* routine_thread(void* arg)
 		if (!strcmp("HOST",cmd))
 		{
 			// Informations about the player
-			sscanf(buff,"%s %s %s %d %d",cmd,arg_pl->name,addr,&port,&mode);
-			inet_aton(addr, &(arg_pl->addr_l.sin_addr));
+			sscanf(buff,"HOST %s %d %d",arg_pl->name,&port,&mode);
+			arg_pl->addr_l = arg_pl->addr_d;
 			arg_pl->addr_l.sin_port = htons(port);
 			arg_pl->mode = mode;
+			//** TEST **//
+			printf("Name : %s \t Address : %s \t Port : %d \t Hote/Joueur : %d \n",arg_pl->name,inet_ntoa(arg_pl->addr_l.sin_addr),ntohs(arg_pl->addr_l.sin_port),arg_pl->mode);
+			//** FIN TEST **//
+			
 		}
 		else if (!strcmp("GAMES",cmd))
 		{
 			// Informations about the other players
 			for (i=0;i<MAXPLAYER;i++)
 			{
-				if (player_tab[i].mode == 0 && strlen(player_tab[i].name) != 0 && player_tab[i].mode != INGAME)
+				if (player_tab[i].mode == 0 && strlen(player_tab[i].name) != 0 && player_tab[i].status != INGAME)
 				{
 					strcpy(addr,inet_ntoa(player_tab[i].addr_l.sin_addr));
 					sprintf(buff,"GAME %s %s %d %d",player_tab[i].name,addr,ntohs(player_tab[i].addr_l.sin_port),player_tab[i].status);
 					CHECK(send(arg_pl->sfd,buff,strlen(buff)+1,0),"Error : write");
+					CHECK(sts = recv(arg_pl->sfd, buff, MAXBUFF, 0), "Error : read"); //!\\ Synchronisme 
+					
 				}
 			}
 			CHECK(send(arg_pl->sfd,"STOP",strlen("STOP")+1,0),"Error : write");
@@ -103,6 +111,9 @@ void* routine_thread(void* arg)
 				}
 			}
 			arg_pl->status = READY;
+			//** TEST **//
+			printf("%s Status : %d \t %s Status : %d \n",arg_pl->name,arg_pl->status,arg_pl->opponent->name,arg_pl->opponent->status);
+			//** FIN TEST **//
 			// Switch the player to "Ready" status		
 		}
 		else if (!strcmp("START",cmd))
@@ -110,6 +121,9 @@ void* routine_thread(void* arg)
 			// Switch the player to "IG" status		
 			arg_pl->status = INGAME;
 			arg_pl->opponent->status = INGAME;
+			//** TEST **//
+			printf("%s Status : %d \t %s Status : %d \n",arg_pl->name,arg_pl->status,arg_pl->opponent->name,arg_pl->opponent->status);
+			//** FIN TEST **//
 		}
 	}	
 	pthread_exit(NULL);
