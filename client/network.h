@@ -22,7 +22,6 @@
 # include <netinet/in.h>
 
 // Defines and macros
-# define SERVER_ADDR "127.0.0.1"
 # define SERVER_PORT 5000
 # define PLACE_REQ 1
 # define FIRE_REQ 2
@@ -30,6 +29,8 @@
 # define MISS_REQ 4
 # define SINK_REQ 5
 # define TURN_REQ 6
+# define WIN_REQ 7
+# define LOSE_REQ 8
 
 # define MAX_ARG 30
 # define MAX_REQ 200

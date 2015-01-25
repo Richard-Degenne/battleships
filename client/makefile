@@ -1,5 +1,5 @@
-game: game.o network.o overall_net.o
-	gcc -o game game.o network.o overall_net.o -lpthread
+main: main.c game.o network.o overall_net.o
+	gcc -o main main.c game.o network.o overall_net.o -lpthread
 
 game.o: game.c game.h network.o
 	gcc -c game.c network.o -lpthread
