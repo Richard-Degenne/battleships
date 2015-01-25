@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
 	opponent_t connected;
 	int games_count;
 	char name[MAX_NAME];
+	char addr_str[16];
 	int mode = argc - 1, win = 0;
 	grid primary, tracking;
 	coord fire;
@@ -26,17 +27,25 @@ int main(int argc, char* argv[]) {
 	int i;
 	pthread_t th;
 	
-	if(mode) {
-		strcpy(name,"Joining");
-	}
-	else {
-		strcpy(name,"Hosting");
-	}
+	// Information prompts
+	printf("Server address: ");
+	scanf("%s", addr_str);
+	flush();
+	printf("Nickname: ");
+	scanf("%s", name);
+	flush();
+
+	do {
+		printf("0. Host\n1. Join\n");
+		scanf("%d", &mode);
+		flush();
+	} while(mode != 0 && mode != 1);
+	
 	game_t games[MAX_GAMES];
 
 	
+	sign_in(name, addr_str, &sfd_s, &sfd_l, mode); 
 	if(mode) { // JOINING PLAYER
-		sign_in(name, &sfd_s, &sfd_l, MODE_JOIN); 
 		printf("Press enter to scan games...\n");
 		getchar();
 
@@ -49,12 +58,12 @@ int main(int argc, char* argv[]) {
 		scanf("%d", &selected);
 		flush();
 
-		connect_player(games[selected], &(connected.sfd), sfd_s);
+		connect_player(games[selected], &connected, sfd_s);
 		send_name(connected.sfd, name);
+	printf("Waiting for the host to start the game...\n");
 		wait_start(sfd_s, connected.sfd);
 	}
 	else { // HOST PLAYER
-		sign_in(name, &sfd_s, &sfd_l, MODE_HOST); 
 		printf("Waiting for an opponent to connect...\n");
 		accept_player(sfd_l, &connected);
 		wait_name(&connected);
@@ -88,9 +97,9 @@ int main(int argc, char* argv[]) {
 		while(1) {
 			// Host turn
 			print_grid(primary);
-			printf("You\n——————————————————————————\n");
+			printf("%s\n——————————————————————————\n", name);
 			print_grid(tracking);
-			printf("Opponent\n——————————————————————————\n");
+			printf("%s\n——————————————————————————\n", connected.name);
 			printf("It's your turn!\n");
 			fire = select_fire_coord(tracking);
 			check_fire(fire, opponent, tracking);
@@ -118,9 +127,9 @@ int main(int argc, char* argv[]) {
 		while(1) {
 			// Host turn
 			print_grid(primary);
-			printf("Primary\n——————————————————————————\n");
+			printf("%s\n——————————————————————————\n", name);
 			print_grid(tracking);
-			printf("Tracking\n——————————————————————————\n");
+			printf("%s\n——————————————————————————\n", connected.name);
 			printf("Waiting for the opponent to fire...\n");
 			if(receive_fire(primary)) {
 				printf("+-----------+\n| You lost! |\n+-----------+\n");

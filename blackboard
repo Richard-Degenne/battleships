@@ -52,7 +52,7 @@ HOST <player_name> <listen_port> <mode>
 	
 	A player has connected to the server. Mode 0: Host. Mode 1: Join
 
-CANCEL
+CANCEL // NIY
 ------
 	From: A player who has exited the "Host a game" menu
 	To: Central server
@@ -67,17 +67,17 @@ GAMES
 	A player wants to join a game, and request the list of all available games.
 	The central server answers with a GAME request for each available game.
 
-GAME <host_name> <host_address> <host_port> <ready_state>
----------------------------------------------------------
+GAME <host_name> <host_address> <host_port> <available_state>
+-------------------------------------------------------------
 	From: Central server
 	To: A player who has entered the "Join a game" menu
 	Example: GAME Richou_D_Degenne 82.58.164.35 6357 1
 
 	The central server describes a game with its host name, IP address and port,
-	and tells if the game has already been joined by someone else.
+	and tells if the game is available.
 
 JOIN <host_name> <host_address> <host_port>
----------------------------------------------
+-------------------------------------------
 	From: A player who has selected a game from the "Join a game" menu.
 	To: Host server and central server
 	Example: JOIN Pataprout 192.168.1.4 55237
@@ -85,6 +85,16 @@ JOIN <host_name> <host_address> <host_port>
 	A player has joined a game. Opens a socket between the two players and the
 	server mark the game as ready. The host client stops listening for JOIN
 	requests.
+
+LEAVE <host_name> <host_address> <host_port> // NIY
+--------------------------------------------
+	From: A player who has left a game from the "Join a game" menu.
+	To: Host server and central server
+	Example: LEAVE Pataprout 192.168.1.4 55237
+	
+	A player has left a game. Closes the socket between the two players and the
+	server mark the game as available. The host client starts listening for JOIN
+	requests again.
 
 	
 START
@@ -97,7 +107,7 @@ START
 	server removes the entry from the "available games" list and adds it to the
 	"in progress" list.
 
-PLACE <boat_id> <x_start_pos><y_start_pos> <x_end_pos><y_end_pos>
+PLACE <boat_id> <x_start_pos> <y_start_pos> <x_end_pos> <y_end_pos>
 -------------------------------------------------------------------
 	From: A player
 	To: Host server
@@ -105,7 +115,7 @@ PLACE <boat_id> <x_start_pos><y_start_pos> <x_end_pos><y_end_pos>
 
 	A player has placed one of his/her boats.
 
-FIRE <x_pos><y_pos>
+FIRE <x_pos> <y_pos>
 ------------------—-
 	From: A player
 	To: Host server
@@ -113,7 +123,7 @@ FIRE <x_pos><y_pos>
 
 	A player has fired upon a square.
 
-HIT <x_pos><y_pos>
+HIT <x_pos> <y_pos>
 ------------------
 	From: Host server 
 	To: Both players
@@ -129,7 +139,7 @@ SINK <boat_id>
 
 	A boat has been sunk.
 
-MISS <x_pos><y_pos>
+MISS <x_pos> <y_pos>
 -------------------
 	From: Host server
 	To: Both players

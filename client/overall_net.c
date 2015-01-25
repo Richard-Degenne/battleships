@@ -15,7 +15,7 @@
  * Creates a listening socket, connects the main server and sends it the address of the listening socket.
  * Mode: 0-Host, 1-Join
  */
-void sign_in(char* nick, int* sfd_server, int* sfd_listen, int mode) {
+void sign_in(char* nick, char* addr_str, int* sfd_server, int* sfd_listen, int mode) {
 	struct sockaddr_in addr, addr_s, addr_l;
 	int len = sizeof(addr_l);
 	char buff[MAX_REQ];
@@ -32,7 +32,7 @@ void sign_in(char* nick, int* sfd_server, int* sfd_listen, int mode) {
 	// Connecting to server
 	addr_s.sin_family = AF_INET;
 	addr_s.sin_port = htons(SERVER_PORT);
-	inet_aton(SERVER_ADDR, &(addr_s.sin_addr));
+	inet_aton(addr_str, &(addr_s.sin_addr));
 
 	check(*sfd_server = socket(AF_INET, SOCK_STREAM, 0), "Error creating socket");
 	check(connect(*sfd_server, (struct sockaddr*)&addr_s, sizeof(addr_s)), "Error connecting");
@@ -61,10 +61,11 @@ int get_games(int sfd, game_t tab_p[]) {
 	do {
 		i++;
 		check(recv(sfd, buff, MAX_REQ, 0), "Error receiving");
-		sscanf(buff, "GAME %s %s %d %d", tab_p[i].name, buff_addr, &buff_port, &(tab_p[i].available));
+		sscanf(buff, "GAME %s %s %d %d", tab_p[i].name, buff_addr, &buff_port, &(tab_p[i].status));
 		inet_aton(buff_addr, &(tab_p[i].addr.sin_addr));
 		tab_p[i].addr.sin_port = htons(buff_port);
 		tab_p[i].addr.sin_family = AF_INET;
+		check(send(sfd, "OK", strlen("OK"), 0), "Error sending");
 	} while(strcmp(buff, "STOP") && i<MAX_GAMES);
 	return i;
 }
@@ -77,8 +78,9 @@ int get_games(int sfd, game_t tab_p[]) {
  */
 void print_games(game_t tab_p[], int n) {
 	int i;
+	printf("#\t| Name\t| Address\t| Port\t| Available?\n======================================================\n");
 	for(i=0 ; i<n ; ++i) {
-		printf("%s\t| %s\t| %d\t| %s\n", tab_p[i].name, inet_ntoa(tab_p[i].addr.sin_addr), ntohs(tab_p[i].addr.sin_port), tab_p[i].available?"Yes":"No");
+		printf("%d\t| %s\t| %s\t| %d\t| %s\n", i, tab_p[i].name, inet_ntoa(tab_p[i].addr.sin_addr), ntohs(tab_p[i].addr.sin_port), (tab_p[i].status == AVAILABLE_ST)?"Yes":"No");
 	}
 }
 
@@ -88,12 +90,14 @@ void print_games(game_t tab_p[], int n) {
  * 
  * Creates a dialog socket to the selected player and tells the server. Returns the created socket file descriptor.
  */
-void connect_player(game_t game_p, int* sfd_p, int sfd_s) {
+void connect_player(game_t game_p, opponent_t* o, int sfd_s) {
 	char buff[MAX_REQ] = "";
+	strcpy(o->name, game_p.name);
+	o->addr = game_p.addr;
 
 	// Connect to host
-	check(*sfd_p = socket(AF_INET, SOCK_STREAM, 0), "Error creating socket");
-	check(connect(*sfd_p, (struct sockaddr*)&(game_p.addr), sizeof(game_p.addr)), "Error connecting");
+	check(o->sfd = socket(AF_INET, SOCK_STREAM, 0), "Error creating socket");
+	check(connect(o->sfd, (struct sockaddr*)&(o->addr), sizeof(o->addr)), "Error connecting");
 	printf("You are connected to %s\n", game_p.name);
 
 	// Send a JOIN request to the server
@@ -161,6 +165,7 @@ void send_start(int sfd_s, opponent_t o) {
  */
 void wait_start(int sfd_s, int sfd_o) {
 	char buff[MAX_REQ] = "";
+
 	do {
 		check(recv(sfd_o, buff, MAX_REQ, 0), "Error receiving");
 	} while(strcmp(buff, "START"));
