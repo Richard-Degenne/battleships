@@ -1,9 +1,9 @@
 /*
-* serv.c
-*
-* Richard Degenne - Adrien Deprez
-* 09/12/14
-*
+ * serv.c
+ *
+ * Richard Degenne - Adrien Deprez
+ * 09/12/14
+ *
  * Contains functions for the host server.
  */
 
