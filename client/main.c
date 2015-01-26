@@ -42,11 +42,10 @@ int main(int argc, char* argv[]) {
 	} while(mode != 0 && mode != 1);
 	
 	game_t games[MAX_GAMES];
-
 	
 	sign_in(name, addr_str, &sfd_s, &sfd_l, mode); 
 	if(mode) { // JOINING PLAYER
-		printf("Press enter to scan games...\n");
+		printf("Pres [ENTER] to scan games.\n");
 		getchar();
 
 		games_count = get_games(sfd_s, games);
@@ -54,9 +53,11 @@ int main(int argc, char* argv[]) {
 		print_games(games, games_count);
 
 		int selected;
-		printf("Select a game: ");
-		scanf("%d", &selected);
-		flush();
+		do {
+			printf("Select a game: ");
+			scanf("%d", &selected);
+			flush();
+		} while(selected >= games_count || games[selected].status != AVAILABLE_ST);
 
 		connect_player(games[selected], &connected, sfd_s);
 		send_name(connected.sfd, name);

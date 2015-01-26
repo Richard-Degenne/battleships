@@ -26,7 +26,8 @@ int main(int argc, char* argv[])
 
 	// Construction of the Adress
 	CHECK(serv_sock = socket(AF_INET, SOCK_STREAM,0), "Error : socket");
-	inet_aton("127.0.0.1", &(serv_addr.sin_addr));
+	// inet_aton("127.0.0.1", &(serv_addr.sin_addr));
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(port);
 	memset(&serv_addr.sin_zero,0,8);
