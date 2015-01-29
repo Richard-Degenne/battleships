@@ -2,7 +2,7 @@
  * \file	overall_net.h
  * \brief	Header for the overall_net.c file.
  *
- * \author	Richard Degenne - Adrien Deprez
+ * \author	Richard Degenne
  * \date	12-15-14
  *
  */

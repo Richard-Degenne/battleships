@@ -2,7 +2,7 @@
  * \file	game.h
  * \brief	Header for the game.c file.
  *
- * \author	Richard Degenne - Adrien Deprez
+ * \author	Richard Degenne
  * \date	12-06-14
  *
  */

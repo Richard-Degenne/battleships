@@ -1,10 +1,10 @@
-/*
- * serv.h
+/**
+ * \file	serv.h
+ * \brief	Header for the serv.c file.
  *
- * Richard Degenne - Adrien Deprez
- * 09/12/14
+ * \author	Adrien Deprez
+ * \date	12-09-14
  *
- * Header for the serv.c file.
  */
 
 

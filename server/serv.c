@@ -1,10 +1,10 @@
-/*
-* serv.c
-*
-* Richard Degenne - Adrien Deprez
-* 09/12/14
-*
- * Contains functions for the host server.
+/**
+ * \file	serv.c
+ * \brief	Contains functions for the host server.
+ *
+ * \author	Adrien Deprez
+ * \date	12-09-14
+ *
  */
 
 #include "serv.h"

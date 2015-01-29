@@ -1,17 +1,17 @@
-/*
- * main.c
+/**
+ * \file	main.c
+ * \brief	Main program
  *
- * Richard Degenne - Adrien Deprez
- * 06/12/14
+ * \author	Richard Degenne
+ * \date	12-06-14
  *
- * Main program
  */
 
 # include "game.h"
 # include "overall_net.h"
 
-int sfd;
-grid opponent;
+int sfd;//!< Dialog socket file descriptor between players
+grid opponent;//!< Opponent grid for the host
 
 int main(int argc, char* argv[]) {
 	int sfd_s, sfd_l; // s: server, l: listening
@@ -43,11 +43,13 @@ int main(int argc, char* argv[]) {
 	
 	game_t games[MAX_GAMES];
 	
+	// Sign in to the server
 	sign_in(name, addr_str, &sfd_s, &sfd_l, mode); 
 	if(mode) { // JOINING PLAYER
-		printf("Pres [ENTER] to scan games.\n");
+		printf("Press [ENTER] to scan games.\n");
 		getchar();
-
+		
+		// Fetch and select a game
 		games_count = get_games(sfd_s, games);
 		printf("%d games received.\n", games_count);
 		print_games(games, games_count);
@@ -70,10 +72,11 @@ int main(int argc, char* argv[]) {
 		wait_name(&connected);
 		printf("Ready? Press [ENTER] to start the game.");
 		getchar();
+		
 		send_start(sfd_s, connected);
 	}
 	printf("Game starts!\n===============================\n");
-	sfd = connected.sfd; // Make the created sfd global
+	sfd = connected.sfd; // Make the created socket file descriptor global
 
 	setup_fleet(fleet);
 	reset_grid(primary);
@@ -152,5 +155,6 @@ int main(int argc, char* argv[]) {
 			printf("End of your turn.\n");
 		}
 	}
+	printf("Thanks for playing Battleships! Check http://richarddegenne.wordpress.com for more about this game!\n");
 	return EXIT_SUCCESS;
 }

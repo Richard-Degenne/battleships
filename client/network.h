@@ -2,7 +2,7 @@
  * \file	network.h
  * \brief	Header for the network.c file.
  *
- * \author	Richard Degenne - Adrien Deprez
+ * \author	Richard Degenne
  * \date	12-09-14
  *
  */
