@@ -163,7 +163,7 @@ void send_start(int sfd_s, opponent_t o) {
  *
  * Waits for the host player to start the game.
  */
-void wait_start(int sfd_s, int sfd_o) {
+void wait_start(int sfd_o) {
 	char buff[MAX_REQ] = "";
 
 	do {

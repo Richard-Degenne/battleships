@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 		connect_player(games[selected], &connected, sfd_s);
 		send_name(connected.sfd, name);
 	printf("Waiting for the host to start the game...\n");
-		wait_start(sfd_s, connected.sfd);
+		wait_start(connected.sfd);
 	}
 	else { // HOST PLAYER
 		printf("Waiting for an opponent to connect...\n");
