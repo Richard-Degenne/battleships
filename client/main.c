@@ -1,5 +1,5 @@
 /**
- * \file	main.c
+ * \file	client/main.c
  * \brief	Main program
  *
  * \author	Richard Degenne

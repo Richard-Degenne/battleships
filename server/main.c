@@ -1,5 +1,5 @@
 /**
- * \file	main.c
+ * \file	server/main.c
  * \brief	Contains functions for the host server.
  *
  * \author	Adrien Deprez
