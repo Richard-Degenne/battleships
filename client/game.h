@@ -53,7 +53,14 @@
  */
 # define HIT_SQ 'X'
 
+/**
+ * \brief	Returns the maximum of two comparable values
+ */
 # define max(a,b) (((a)>(b)) ? (a) : (b))
+
+/**
+ * \brief	Return the minimum of two comparable values
+ */
 # define min(a,b) (((a)<(b)) ? (a) : (b))
 
 // Typedefs and structs
@@ -87,7 +94,8 @@ typedef struct boat {
 	 */
 	char name[30];
 	int lenght; //!< The boat's lenght, in squares.
-	coord start, end; //!< Position of the boat on the grid.
+	coord start; //!< Position of the first end of the boat;
+	coord end; //!< Position of the other end of the boat.
 } boat;
 
 // Prototypes
@@ -95,8 +103,9 @@ typedef struct boat {
 /**
  * \brief	Sets the fleet up.
  * \details	Initializes parameters for each boat of the fleet. Positions are set to -1 and must be set before effectively placing the boat on the grid.
+ * \param	fleet_p	The fleet to set up.
  */
-void setup_fleet(boat[]);
+void setup_fleet(boat fleet_p[]);
 
 /**
  * \brief	Prompts user for a boat's coordinates and applies it to a boat.
@@ -104,14 +113,14 @@ void setup_fleet(boat[]);
  * \param	boat_p	The boat to prompt the user for.
  * \param	grid_p	The grid to use for collision detection
  */
-void select_boat_coord(boat*, grid);
+void select_boat_coord(boat* boat_p, grid grid_p);
 
 /**
  * \brief	Resets a grid.
  * \details	Sets every square of the grid to EMPTY_SQ.
  * \param	grid_p	The grid to reset
  */
-void reset_grid(grid);
+void reset_grid(grid grid_p);
 
 /**
  * \brief	Places a boat on a grid
@@ -119,7 +128,7 @@ void reset_grid(grid);
  * \param	boat_p	The boat to place
  * \param	grid_p	The grid to place the boat on
  */
-void place_boat(boat*, grid);
+void place_boat(boat* boat_p, grid grid_p);
 
 /**
  * \brief	Prints a grid.
@@ -129,7 +138,7 @@ void place_boat(boat*, grid);
  * \see X_SIZE
  * \see Y_SIZE
  */
-void print_grid(grid);
+void print_grid(grid grid_p);
 
 /**
  * \brief	Sends a boat's information through a socket.
@@ -137,7 +146,7 @@ void print_grid(grid);
  * \param	boat_p	The boat which infos are to be sent
  * \param	id	The boat's id.
  */
-void send_boat(boat*, int);
+void send_boat(boat* boat_p, int id);
 
 /**
  * \brief	Prompts the user for a coordinate to fire upon.
@@ -145,7 +154,7 @@ void send_boat(boat*, int);
  * \param	grid_p	The grid to check the selected coordinate's relevance on.
  * \return	The first consistent selected coordinate
  */
-coord select_fire_coord(grid);
+coord select_fire_coord(grid grid_p);
 
 /**
  * \brief	Checks the result of a shot.
@@ -154,7 +163,7 @@ coord select_fire_coord(grid);
  * \param	target	The grid on which to fire
  * \param	display	The grid on which to update the display.
  */
-void check_fire(coord, grid, grid);
+void check_fire(coord fire, grid target, grid display);
 
 /**
  * \brief	Waits for the other player to fire.
@@ -166,17 +175,17 @@ coord wait_fire();
 /**
  * \brief	Waits fot the host to send a report for a previous shot.
  * \details	Reports can be send in 1, 2 or 3 requests. An `OK` acknowledgement is sent after each. Udpates `target` accordingly and prints out a log.
- * \param	The grid to update
+ * \param	target	The grid to update
  * \return	1 if the game is over, 0 otherwise
  */
-int receive_fire(grid);
+int receive_fire(grid target);
 
 /**
  * \brief	Sends a fire.
  * \details	Sets up a `FIRE` request and sends it to the host player.
- * \param	The shot's coordinates
+ * \param	coord_p	The shot's coordinates
  */
-void send_fire(coord);
+void send_fire(coord coord_p);
 
 /**
  * \brief	Check whether a player has won.
@@ -185,14 +194,14 @@ void send_fire(coord);
  * \param	fleet	Boats to look up
  * \returns	1 if the entire fleet has been sunk, 0 otherwise.
  */
-int check_win(grid, boat*);
+int check_win(grid target, boat* fleet);
 
 /**
  * \brief	Tells the other player he has won or lost.
  * \details	Sets up a `WIN` or `LOSE` and sets it to the other player.
  * \param	mode	0 for `LOSE`, any other value for `WIN`.
  */
-void send_win(int);
+void send_win(int mode);
 
 // Miscalleneous
 
@@ -222,14 +231,16 @@ void flush();
  * \param	target	Grid to search the boat
  * \return	1 if the boat is sunk, 0 otherwise.
  */
-int sunk(char, grid);
+int sunk(char id, grid target);
 
 // Thread routine
 
 /**
  * \brief	Waits for the opponent to send their boats and place them into a grid.
  * \details	This is a thread routine so the joining player can asynchronously send their boats to the host. Received boats are placed in `opponent`, a global grid.
+ * \param	arg	Dummy argument.
+ * \return	NULL, dummy return value.
  */
-void* receive_boat(void*);
+void* receive_boat(void* arg);
 
 # endif // _GAME_H defined

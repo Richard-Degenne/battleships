@@ -88,6 +88,9 @@
  */
 # define TIMEOUT 60
 
+/**
+ * \brief	Checks that a system call does not fail
+ */
 # define check(sts,msg) if((sts) == -1) { \
 	perror(msg); exit(EXIT_FAILURE);}
 
@@ -116,7 +119,7 @@ typedef struct req_t {
  * \param	req_p	The request to send
  * \param	buffer	The string to store the generated request.
  */
-void build_request(req_t*, char*);
+void build_request(req_t* req_p, char* buffer);
 
 /**
  * \brief	Sends a request.
@@ -124,7 +127,7 @@ void build_request(req_t*, char*);
  * \param	req_p	The request to send
  * \see	build_request
  */
-void send_request(req_t*);
+void send_request(req_t* req_p);
 
 /**
  * \brief	Waits for a request to be sent on a socket.
@@ -132,6 +135,6 @@ void send_request(req_t*);
  * \param	buffer	A string where the received request will be copied
  * \param	sfd	File descriptor to the socket to listen to.
  */
-void wait_request(char*, int);
+void wait_request(char* buffer, int sfd);
 
 # endif

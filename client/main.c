@@ -13,6 +13,13 @@
 int sfd;//!< Dialog socket file descriptor between players
 grid opponent;//!< Opponent grid for the host
 
+/**
+ * \brief	The client's main function.
+ * \details	This functions coordinates the different libraries to create the actual game. It will prompt the client for the server's address, the player's nickname and if they want to host or join a game.
+ * \param	argc	Command-line arguments count. Not used.
+ * \param	argv	Command-line arguments. Not used.
+ * \return	`EXIT_FAILURE` in case of error, `EXIT_SUCCESS` otherwise.
+ */
 int main(int argc, char* argv[]) {
 	int sfd_s, sfd_l; // s: server, l: listening
 	opponent_t connected;

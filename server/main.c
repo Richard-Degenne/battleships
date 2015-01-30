@@ -1,5 +1,5 @@
 /**
- * \file	serv.c
+ * \file	main.c
  * \brief	Contains functions for the host server.
  *
  * \author	Adrien Deprez
@@ -13,8 +13,12 @@
  * A player's address is the address of his listening socket
  */
 
-struct player player_tab[MAXPLAYER];
+struct player player_tab[MAXPLAYER];//!< Array of connected players
 
+/**
+ * \brief	Server main thread
+ * \returns	0 if success, 1 if error.
+ */
 int main(int argc, char* argv[])
 {
 	// Variable declaration
