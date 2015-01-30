@@ -1,0 +1,9 @@
+*
+
+!**/
+!.gitignore
+!*\.c
+!*\.h
+!makefile
+!doc/**
+!doc/*
