@@ -1,25 +1,18 @@
-/*
- * game.c
+/**
+ * \file	game.c
+ * \brief	Contains functions for the game mechanism itself.
  *
- * Richard Degenne - Adrien Deprez
- * 06/12/14
+ * \author	Richard Degenne
+ * \date	12-06-14
  *
- * Contains functions for the game mechanism itself.
  */
 
 # include "game.h"
 
-int sfd; // Global so thread can access it
-grid opponent;
+int sfd;//!< Dialog socket file descriptor between players
+grid opponent;//!< Opponent grid for the host
 
 
-
-/*
- * setup_fleet()
- *
- * Initializes parameters for each boat of the fleet. Positions are set to -1
- * and must be set before effectively placing the boat on the grid.
- */
 void setup_fleet (boat fleet_p[]) {
 	char* names[FLEET_SIZE] = {"Aircraft carrier", "Battleship", "Submarine", "Submarine", "Patrol boat", "Patrol boat"};
 	int lenghts[FLEET_SIZE] = {5,4,3,3,2,2};
@@ -37,11 +30,6 @@ void setup_fleet (boat fleet_p[]) {
 }
 
 
-/*
- * select_boat_coord()
- * 
- * Prompts user for coordinates and applies them to a boat.
- */
 void select_boat_coord(boat* boat_p, grid grid_p) {
 	char buff_ch;
 	int buff_int;
@@ -133,11 +121,6 @@ void select_boat_coord(boat* boat_p, grid grid_p) {
 }
 
 
-/*
- * reset_grid()
- *
- * Sets every square of the grid to EMPTY_SQ.
- */
 void reset_grid(grid grid_p) {
 	int x,y;
 	for(x=0 ; x<X_SIZE ; ++x) {
@@ -148,12 +131,6 @@ void reset_grid(grid grid_p) {
 }
 
 
-/*
- * place_boat()
- * 
- * Positions a boat on a grid. Sets every square covered by the boat with the
- * first letter of its name.
- */
 void place_boat(boat* boat_p, grid grid_p) {
 	int x_start = min(boat_p->start.x, boat_p->end.x);
 	int x_final = max(boat_p->start.x, boat_p->end.x);
@@ -178,11 +155,6 @@ void place_boat(boat* boat_p, grid grid_p) {
 }
 
 
-/*
- * print_grid()
- *
- * Displays a grid in a pretty way.
- */
 void print_grid(grid grid_p) {
 	int x, y;
 	printf("   | A | B | C | D | E | F | G | H | I | J |\n--------------------------------------------\n");
@@ -196,11 +168,6 @@ void print_grid(grid grid_p) {
 }
 
 
-/*
- * send_boat()
- * 
- * Sets up a request and sends it to the host server.
- */
 void send_boat(boat* boat_p, int id) {
 	req_t request;
 	
@@ -216,11 +183,6 @@ void send_boat(boat* boat_p, int id) {
 }
 
 
-/*
- * select_fire_coord()
- * 
- * Selects coordinates of a square the player wants to fire upon
- */
 coord select_fire_coord(grid grid_p) {
 	coord fire;
 	do {
@@ -231,12 +193,6 @@ coord select_fire_coord(grid grid_p) {
 }
 
 
-/*
- * check_fire()
- *
- * Checks if a shot hits or misses on `target`, and if it sinks a boat.
- * Updates `display` grid accordingly and sends a report to the other player.
- */
 void check_fire(coord fire, grid target, grid display) {
 	req_t report;
 	report.sfd = sfd;
@@ -277,11 +233,6 @@ void check_fire(coord fire, grid target, grid display) {
 }
 
 
-/*
- * wait_fire()
- *
- * Waits for the joining player to send a `FIRE` request.
- */
 coord wait_fire() {
 	char buff[MAX_REQ];
 	coord fire;
@@ -291,11 +242,6 @@ coord wait_fire() {
 }
 
 
-/*
- * receive_fire()
- *
- * Waits for the host to send a report for a shot, and updates the `target` grid accordingly.
- */
 int receive_fire(grid target) {
 	char buff[MAX_REQ];
 	char cmd[MAX_ARG];
@@ -331,11 +277,6 @@ int receive_fire(grid target) {
 }
 
 
-/*
- * send_fire()
- *
- * Sets up a request and sends it to the host server.
- */
 void send_fire(coord coord_p) {
 	req_t request;
 
@@ -348,11 +289,6 @@ void send_fire(coord coord_p) {
 }
 
 
-/*
- * check_win()
- * 
- * Checks whether a player has won. If yes, returns 1. Returns 0 otherwise.
- */
 int check_win(grid target, boat* fleet) {
 	int i, j, k;
 	char ack[MAX_REQ];
@@ -375,11 +311,6 @@ int check_win(grid target, boat* fleet) {
 }
 
 
-/*
- * send_win()
- *
- * Sends a `WIN` or a `LOSE` request according to `mode`.
- */
 void send_win(int mode) {
 	req_t req;
 	req.sfd = sfd;
@@ -393,11 +324,6 @@ void send_win(int mode) {
 }
 
 
-/*
- * select_char_coord()
- *
- * Returns 0 for A or a, 1 for B or b, ... 9 for J or j. Loops else.
- */
 int select_char_coord() {
 	int x;
 	char x_c;
@@ -410,11 +336,7 @@ int select_char_coord() {
 	return x;
 }
 
-/*
- * select_int_coord()
- *
- * Returns any int >= 0 and < Y_SIZE
- */
+
 int select_int_coord() {
 	int y;
 	do {
@@ -426,11 +348,6 @@ int select_int_coord() {
 }
 
 
-/*
- * flush()
- *
- * Flushes stdin.
- */
 void flush() {
 	char c;
 	do {
@@ -439,12 +356,6 @@ void flush() {
 }
 
 
-/*
- * sunk()
- *
- * Tests if a boat has been sunk.
- * Return: 1 if sunk, 0 otherwise
- */
 int sunk(char id, grid target) {
 	int i, j;
 
@@ -460,11 +371,6 @@ int sunk(char id, grid target) {
 }
 
 
-/*
- * receive_boat()
- *
- * Waits for the opponent to send his/her boats and place them into a grid.
- */
 void* receive_boat(void* arg) {
 	int i, j, n, dummy;
 	int id;
@@ -481,57 +387,3 @@ void* receive_boat(void* arg) {
 
 	pthread_exit(NULL);
 }
-
-/*
-int main(int argc, char* argv[]) {
-	grid primary, tracking;
-	coord fire;
-	boat fleet[FLEET_SIZE];
-
-	int i;
-	pthread_t th;
-
-	setup_fleet(fleet);
-	printf("Fleet set up.\n");
-	reset_grid(primary);
-	reset_grid(tracking);
-	reset_grid(opponent);
-	printf("Grids reset.\n");
-	if(argc == 1) { // Host
-		pthread_create(&th, NULL, receive_boat, NULL);
-		printf("Thread created.\n");
-	}
-	
-	for(i=0 ; i < FLEET_SIZE ; ++i) {
-		print_grid(primary);
-		printf(">> %s\n", fleet[i].name);
-		select_boat_coord(&fleet[i], primary);
-		place_boat(&fleet[i],primary);
-		if(argc > 1) { // Client
-			send_boat(&fleet[i], i);
-		}
-	}
-	if(argc == 1) { // Host
-		pthread_join(th, NULL);
-		while(1) {
-			// Host turn
-			fire = select_fire_coord(tracking);
-			check_fire(fire, opponent, tracking); // NIY
-			// Client turn
-			fire = wait_fire();
-			check_fire(fire, primary, NULL);
-		}
-	}
-	else { // Client
-		while(1) {
-			// Host turn
-			receive_fire(primary);
-			// Client turn
-			fire = select_fire_coord(tracking);
-			send_fire(fire);
-			receive_fire(tracking);
-		}
-	}
-	return EXIT_SUCCESS;
-}
-*/

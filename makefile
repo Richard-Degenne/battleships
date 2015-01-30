@@ -1,6 +1,6 @@
-all: client server
+all: client/main server/main
 
-client: client/main.c client/game.o client/network.o client/overall_net.o
+client/main: client/main.c client/game.o client/network.o client/overall_net.o
 	gcc -o client/main client/main.c client/game.o client/network.o client/overall_net.o -lpthread
 
 client/game.o: client/game.c client/game.h client/network.o
@@ -12,10 +12,10 @@ client/network.o: client/network.c client/network.h
 client/overall_net.o: client/overall_net.c client/overall_net.h
 	gcc -c -o client/overall_net.o client/overall_net.c
 
-server: server/serv.c server/serv.h
-	gcc -o server/serv server/serv.c -lpthread
+server/main: server/main.c server/serv.h
+	gcc -o server/main server/main.c -lpthread
 
 .PHONY: clean
 
 clean:
-	rm *.o client/main server/serv
+	rm client/*.o client/main server/main

@@ -1,0 +1,27 @@
+var overall__net_8h =
+[
+    [ "game", "structgame.html", "structgame" ],
+    [ "opponent", "structopponent.html", "structopponent" ],
+    [ "AVAILABLE_ST", "overall__net_8h.html#a3c163348750b309774e309dc53d035b9", null ],
+    [ "check", "overall__net_8h.html#a39e9af9c4a35f40264f5d7832009457d", null ],
+    [ "MAX_ARG", "overall__net_8h.html#a2e7620041ccf5bc13755c9f28524d22e", null ],
+    [ "MAX_GAMES", "overall__net_8h.html#a79ea8b7ef7f5bc4d143c0146b7d7ebf9", null ],
+    [ "MAX_NAME", "overall__net_8h.html#ac7c0207aa5a0e10d378be03b68041350", null ],
+    [ "MAX_REQ", "overall__net_8h.html#a60d6a5ff7d7c74135c525acb9e8ee7a1", null ],
+    [ "MAX_RES", "overall__net_8h.html#a8403745c23fd4c4c2408ad2f2fcfa5d6", null ],
+    [ "MODE_HOST", "overall__net_8h.html#aeb4d057ce9bee373c2372118fd731899", null ],
+    [ "MODE_JOIN", "overall__net_8h.html#af1105de7974f09a97321c208ca234a29", null ],
+    [ "SERVER_PORT", "overall__net_8h.html#ac42367fe5c999ec6650de83e9d72fe8c", null ],
+    [ "TIMEOUT", "overall__net_8h.html#a45ba202b05caf39795aeca91b0ae547e", null ],
+    [ "game_t", "overall__net_8h.html#a41fc740f7617b5a808c9498d70b5f1ee", null ],
+    [ "opponent_t", "overall__net_8h.html#a5966f41ee583507d1993ec4293467491", null ],
+    [ "accept_player", "overall__net_8h.html#a92b17743bcb1f1662a0887ccf2263708", null ],
+    [ "connect_player", "overall__net_8h.html#a4730d4f77bc5b9b71d2d02ae3361ffc3", null ],
+    [ "get_games", "overall__net_8h.html#a152ac29a56f2a93cb69ee75bf6567a2c", null ],
+    [ "print_games", "overall__net_8h.html#abcaaab66437ec78c82787e78301d58cc", null ],
+    [ "send_name", "overall__net_8h.html#a0f717e8dc8686e80a2753dc2a3e1962d", null ],
+    [ "send_start", "overall__net_8h.html#ae2f6525818b2ad7f0d50a6ed5f3954b8", null ],
+    [ "sign_in", "overall__net_8h.html#a9a1b0217c035bc260cc0430b26dd5012", null ],
+    [ "wait_name", "overall__net_8h.html#a7526be05a29609dde6e33f24d8ca2178", null ],
+    [ "wait_start", "overall__net_8h.html#ae87fc9c6e84a23e1d6e046b9535daba7", null ]
+];

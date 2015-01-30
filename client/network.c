@@ -1,19 +1,14 @@
-/*
- * network.c
+/**
+ * \file	network.c
+ * \brief	Header for the network.c file.
  *
- * Richard Degenne - Adrien Deprez
- * 09/12/14
+ * \author	Richard Degenne
+ * \date	12-09-14
  *
- * Header for the network.c file.
  */
 
 # include "network.h"
 
-/*
- * build_request()
- *
- * Build the string that will be sent to the server
- */
 
 void build_request(req_t* req_p, char* buffer) {
 	int argc, i;
@@ -66,12 +61,6 @@ void build_request(req_t* req_p, char* buffer) {
 }
 
 
-/*
- * send_request()
- *
- * Sends a request. If response_p == 1, will wait for responses from the
- * server until a `TURN` request and will store them in buff_p.
- */
 void send_request(req_t* req_p) {
 	char buff[MAX_REQ];
 
@@ -80,11 +69,6 @@ void send_request(req_t* req_p) {
 }
 
 
-/*
- * wait_request()
- *
- * Waits for a request on a socket.
- */
 void wait_request(char* buffer, int sfd) {
 	check(recv(sfd, buffer, MAX_REQ, 0), "Error receiveing");
 }
